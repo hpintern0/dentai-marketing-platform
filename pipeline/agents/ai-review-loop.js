@@ -7,7 +7,7 @@ async function runReviewLoop(job) {
   const reviewDir = path.join(outputDir, 'review');
   if (!fs.existsSync(reviewDir)) fs.mkdirSync(reviewDir, { recursive: true });
 
-  const { generateJSON } = require('../../src/lib/ai-cjs');
+  const { generateJSON, generateContent } = require('../../src/lib/ai-cjs');
 
   // Load knowledge for CFO compliance
   const knowledgeDir = path.resolve(__dirname, '../../knowledge');
@@ -120,7 +120,6 @@ Gere JSON:
       );
 
       // Generate readable report
-      const { generateContent } = require('../../src/lib/ai-cjs');
       const report = await generateContent(
         'Gere um relatório de revisão em Markdown legível para a equipe.',
         `Gere relatório baseado nestes dados de revisão:\n${JSON.stringify(reviewResult, null, 2)}`,
