@@ -22,6 +22,7 @@ interface ClientData {
   created_at: string;
   updated_at?: string;
   campaigns?: any[];
+  reference_profiles?: any[];
 }
 
 export default function ClienteDetailPage() {
@@ -209,6 +210,51 @@ export default function ClienteDetailPage() {
           </div>
         </div>
       )}
+
+      {/* Referências */}
+      <div className="card">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-semibold text-gray-900">
+            Perfis de Referência ({(client.reference_profiles || []).length})
+          </h3>
+          <Link
+            href="/referencias"
+            className="text-xs font-medium text-hp-purple hover:text-hp-purple-700"
+          >
+            Ver todos →
+          </Link>
+        </div>
+        {(client.reference_profiles || []).length > 0 ? (
+          <div className="space-y-2">
+            {client.reference_profiles!.map((ref: any) => (
+              <div key={ref.id} className="flex items-center justify-between rounded-lg border border-gray-100 p-3">
+                <div>
+                  <p className="text-sm font-medium text-gray-900">{ref.instagram_handle}</p>
+                  <p className="text-xs text-gray-500">{ref.category?.replace(/_/g, ' ')}</p>
+                </div>
+                <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                  ref.analysis_status === 'analisado' ? 'bg-green-100 text-green-700' :
+                  ref.analysis_status === 'analisando' ? 'bg-blue-100 text-blue-700' :
+                  'bg-gray-100 text-gray-600'
+                }`}>
+                  {ref.analysis_status === 'analisado' ? 'Analisado' :
+                   ref.analysis_status === 'analisando' ? 'Analisando...' : 'Pendente'}
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="py-6 text-center">
+            <p className="text-sm text-gray-500 mb-3">Nenhuma referência cadastrada</p>
+            <Link
+              href="/referencias"
+              className="inline-flex items-center gap-1 rounded-lg bg-hp-purple-50 px-3 py-1.5 text-xs font-medium text-hp-purple-700 hover:bg-hp-purple-100"
+            >
+              Adicionar referência
+            </Link>
+          </div>
+        )}
+      </div>
 
       {/* Edit Modal */}
       <ClientFormModal

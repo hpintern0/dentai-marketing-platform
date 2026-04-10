@@ -39,7 +39,13 @@ export async function GET(request: NextRequest, context: RouteContext) {
       .eq('client_id', id)
       .order('created_at', { ascending: false });
 
-    return NextResponse.json({ ...client, campaigns: campaigns ?? [] });
+    const { data: reference_profiles } = await supabase
+      .from('reference_profiles')
+      .select('id, instagram_handle, category, analysis_status, last_analyzed_at')
+      .eq('client_id', id)
+      .order('created_at', { ascending: false });
+
+    return NextResponse.json({ ...client, campaigns: campaigns ?? [], reference_profiles: reference_profiles ?? [] });
   } catch (err) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
