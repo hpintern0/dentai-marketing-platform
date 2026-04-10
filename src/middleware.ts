@@ -14,9 +14,10 @@ export function middleware(request: NextRequest) {
     pathname.endsWith('.png') ||
     pathname.endsWith('.ico');
 
-  // Check for Supabase auth cookie (sb-<project-ref>-auth-token)
+  // Check for Supabase auth cookie
+  // Supabase v2 stores tokens as sb-<ref>-auth-token, sb-<ref>-auth-token.0, etc.
   const hasAuthCookie = request.cookies.getAll().some(
-    (cookie) => cookie.name.startsWith('sb-') && cookie.name.endsWith('-auth-token')
+    (cookie) => cookie.name.startsWith('sb-') && cookie.name.includes('-auth-token')
   );
 
   // Redirect unauthenticated users to /login for protected routes
@@ -33,11 +34,10 @@ export function middleware(request: NextRequest) {
 
   const response = NextResponse.next();
 
-  // Add security headers
+  // Security headers
   response.headers.set('X-Frame-Options', 'DENY');
   response.headers.set('X-Content-Type-Options', 'nosniff');
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-  response.headers.set('X-DNS-Prefetch-Control', 'on');
 
   // CORS for API routes
   if (pathname.startsWith('/api/')) {

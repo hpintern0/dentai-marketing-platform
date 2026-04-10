@@ -34,11 +34,11 @@ RUN npm ci --production=false
 # Copy source
 COPY . .
 
-# Build-time env vars (Railway injects these)
-# Use placeholders so next build doesn't crash — real values come at runtime
-ARG NEXT_PUBLIC_SUPABASE_URL=https://placeholder.supabase.co
-ARG NEXT_PUBLIC_SUPABASE_ANON_KEY=placeholder
-ARG NEXT_PUBLIC_APP_URL=https://placeholder.railway.app
+# Build-time env vars — Railway injects these via build args
+ARG NEXT_PUBLIC_SUPABASE_URL
+ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
+ARG NEXT_PUBLIC_APP_URL
+
 ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
 ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
 ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL

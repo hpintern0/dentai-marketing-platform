@@ -1,6 +1,8 @@
 [build]
-builder = "dockerfile"
-dockerfilePath = "Dockerfile"
+builder = "nixpacks"
+
+[build.nixpacks]
+aptPkgs = ["chromium", "ffmpeg", "fonts-liberation", "libnss3", "libatk-bridge2.0-0", "libcups2", "libdrm2", "libxkbcommon0", "libgbm1", "libpango-1.0-0", "libcairo2", "libasound2"]
 
 [deploy]
 startCommand = "node server.js"
@@ -8,11 +10,3 @@ healthcheckPath = "/api/health"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3
-
-[[services]]
-name = "web"
-internalPort = 3000
-
-[[services]]
-name = "worker"
-startCommand = "node pipeline/worker.js"
