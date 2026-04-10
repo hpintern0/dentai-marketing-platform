@@ -26,6 +26,7 @@ interface CampaignItem {
     format?: string[];
   };
   clients?: { id: string; name: string };
+  campaign_pieces?: { id: string; piece_type: string; media_url?: string; content?: any; piece_index?: number }[];
 }
 
 const formatConfig: Record<string, { icon: typeof Image; label: string; color: string }> = {
@@ -198,13 +199,22 @@ export default function BibliotecaPage() {
           const FmtIcon = fmt.icon;
           const previewText = (item.parsed_brief?.procedure_focus || item.name || '').slice(0, 80);
           return (
-            <div
+            <a
+              href={`/campanhas/${item.id}`}
               key={item.id}
-              className="card group cursor-pointer transition-all hover:border-hp-purple-200 hover:shadow-md !p-0 overflow-hidden"
+              className="card group cursor-pointer transition-all hover:border-hp-purple-200 hover:shadow-md !p-0 overflow-hidden block"
             >
               {/* Preview */}
-              <div className="relative flex h-40 items-center justify-center bg-gradient-to-br from-hp-purple-50 to-hp-accent-50">
-                <FmtIcon className="h-12 w-12 text-hp-purple-200" />
+              <div className="relative flex h-40 items-center justify-center bg-gradient-to-br from-hp-purple-50 to-hp-accent-50 overflow-hidden">
+                {(() => {
+                  const firstImage = (item.campaign_pieces || [])
+                    .filter(p => p.media_url)
+                    .sort((a, b) => (a.piece_index || 0) - (b.piece_index || 0))[0];
+                  if (firstImage?.media_url) {
+                    return <img src={firstImage.media_url} alt="" className="w-full h-full object-cover" />;
+                  }
+                  return <FmtIcon className="h-12 w-12 text-hp-purple-200" />;
+                })()}
                 <div className={`absolute top-3 left-3 flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-medium ${fmt.color}`}>
                   <FmtIcon className="h-3 w-3" />
                   {fmt.label}
@@ -253,7 +263,7 @@ export default function BibliotecaPage() {
                   </button>
                 </div>
               </div>
-            </div>
+            </a>
           );
         })}
       </div>

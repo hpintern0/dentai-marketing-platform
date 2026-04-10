@@ -14,7 +14,7 @@ const AGENT_SEQUENCE = [
   'copywriter_agent',
   'ad_creative_designer',
   'carousel_agent',
-  // 'video_ad_specialist', // skip by default — needs Remotion
+  'video_ad_specialist',
   'review_orchestrator',
   'distribution_agent',
 ];

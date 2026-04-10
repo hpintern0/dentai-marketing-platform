@@ -464,24 +464,29 @@ export default function NovaCampanhaPage() {
 
         {/* Input */}
         <div className="border-t border-gray-200 p-4">
-          <div className="flex gap-2">
-            <input
-              type="text"
+          <div className="flex gap-2 items-end">
+            <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend();
+                }
+              }}
               placeholder={
                 !selectedClientId
                   ? 'Selecione um cliente primeiro...'
                   : 'Descreva a campanha que deseja criar...'
               }
               disabled={!selectedClientId || chatLoading}
-              className="flex-1 rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-hp-purple focus:outline-none focus:ring-1 focus:ring-hp-purple disabled:opacity-50 disabled:cursor-not-allowed"
+              rows={3}
+              className="flex-1 resize-none rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-hp-purple focus:outline-none focus:ring-1 focus:ring-hp-purple disabled:opacity-50 disabled:cursor-not-allowed"
             />
             <button
               onClick={handleSend}
               disabled={!selectedClientId || chatLoading || !input.trim()}
-              className="flex h-10 w-10 items-center justify-center rounded-lg bg-hp-purple text-white hover:bg-hp-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-hp-purple text-white hover:bg-hp-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Send className="h-4 w-4" />
             </button>

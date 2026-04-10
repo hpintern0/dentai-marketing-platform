@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
 
     let query = supabase
       .from('campaigns')
-      .select('*, clients(id, name)')
+      .select('*, clients(id, name), campaign_pieces(id, piece_type, media_url, content, piece_index)')
       .order('created_at', { ascending: false });
 
     if (clientId) {

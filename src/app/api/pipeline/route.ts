@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
       tone: body.tone || 'educativo',
       skip_research: body.skip_research || false,
       skip_image: body.skip_image || false,
-      skip_video: body.skip_video !== false ? true : false, // skip video by default
+      skip_video: body.skip_video || false,
       skip_carousel: body.skip_carousel || false,
     };
 
