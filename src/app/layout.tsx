@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { ToastProvider } from '@/components/ui/toast';
+import { AuthGuard } from '@/components/auth-guard';
 import { useAuth } from '@/hooks/use-auth';
 import { signOut } from '@/lib/auth';
 import {
@@ -72,7 +73,9 @@ export default function RootLayout({
         </head>
         <body className={inter.className}>
           <ToastProvider>
-            {children}
+            <AuthGuard>
+              {children}
+            </AuthGuard>
           </ToastProvider>
         </body>
       </html>
@@ -93,6 +96,7 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <ToastProvider>
+        <AuthGuard>
         <div className="flex h-screen overflow-hidden">
           {/* Mobile overlay */}
           {sidebarOpen && (
@@ -214,6 +218,7 @@ export default function RootLayout({
             </main>
           </div>
         </div>
+        </AuthGuard>
         </ToastProvider>
       </body>
     </html>

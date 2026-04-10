@@ -19,7 +19,9 @@ export default function LoginPage() {
 
     try {
       await signIn(email, password);
-      router.push('/dashboard');
+      // Use window.location instead of router.push so the browser
+      // sends the auth cookie on the next request (middleware needs it)
+      window.location.href = '/dashboard';
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Erro ao fazer login';
       setError(message);
