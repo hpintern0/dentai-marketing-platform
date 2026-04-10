@@ -110,9 +110,9 @@ export function useChat(clientId: string | null) {
             platform_targets: currentBrief.parsed.platform_targets,
             tone: currentBrief.parsed.tone,
             skip_research: false,
-            skip_image: !currentBrief.parsed.format.includes('feed_static'),
-            skip_video: !currentBrief.parsed.format.includes('reels'),
-            skip_carousel: !currentBrief.parsed.format.includes('carousel'),
+            skip_image: false,
+            skip_video: false,
+            skip_carousel: false,
           },
         }),
       });
