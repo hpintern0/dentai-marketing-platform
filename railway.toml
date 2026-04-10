@@ -1,8 +1,6 @@
 [build]
-builder = "nixpacks"
-
-[build.nixpacks]
-aptPkgs = ["chromium", "ffmpeg", "fonts-liberation", "libnss3", "libatk-bridge2.0-0", "libcups2", "libdrm2", "libxkbcommon0", "libgbm1", "libpango-1.0-0", "libcairo2", "libasound2"]
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
 
 [deploy]
 startCommand = "node server.js"

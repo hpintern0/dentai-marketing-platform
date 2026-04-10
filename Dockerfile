@@ -1,0 +1,33 @@
+FROM node:20-slim
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+  libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 \
+  libxkbcommon0 libxcomposite1 libxdamage1 libxrandr2 libgbm1 \
+  libpango-1.0-0 libcairo2 libasound2 libxshmfence1 \
+  fonts-noto-color-emoji fonts-liberation chromium ffmpeg \
+  && rm -rf /var/lib/apt/lists/*
+
+ENV PLAYWRIGHT_BROWSERS_PATH=/usr/bin
+ENV CHROMIUM_PATH=/usr/bin/chromium
+
+WORKDIR /app
+
+COPY package.json package-lock.json* ./
+RUN npm ci --production=false
+
+COPY . .
+
+# Real Supabase values baked in at build time
+ENV NEXT_PUBLIC_SUPABASE_URL=https://zmtjlpcgfaczbrqwhejk.supabase.co
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptdGpscGNnZmFjemJycXdoZWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MjAxNjUsImV4cCI6MjA5MTM5NjE2NX0.fmr8gu6ywI98jkB9fIBla4ApQ48Mh8W2fgzfw53Lef8
+ENV NEXT_PUBLIC_APP_URL=https://dentai-marketing-platform-production.up.railway.app
+
+RUN npm run build
+
+EXPOSE 3000
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
+
+CMD ["node", "server.js"]
