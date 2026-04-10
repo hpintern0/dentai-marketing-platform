@@ -123,7 +123,110 @@ async function runPipeline(payload) {
     JSON.stringify({ payload, results, total_duration_ms: totalDuration, completed_at: new Date().toISOString() }, null, 2)
   );
 
+  // Save outputs to Supabase (campaign_pieces + storage)
+  if (payload.campaign_id && process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    try {
+      await saveOutputsToSupabase(payload, outputDir);
+    } catch (err) {
+      console.error('[Pipeline] Failed to save outputs to Supabase:', err.message);
+    }
+  }
+
   return { results, total_duration_ms: totalDuration };
+}
+
+async function saveOutputsToSupabase(payload, outputDir) {
+  const { createClient } = require('@supabase/supabase-js');
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY
+  );
+
+  const campaignId = payload.campaign_id;
+  const clientId = payload.client_id;
+  const pieces = [];
+
+  // Upload carousel slides
+  const carouselDir = path.join(outputDir, 'carousel');
+  if (fs.existsSync(carouselDir)) {
+    const slides = fs.readdirSync(carouselDir).filter(f => f.endsWith('.png')).sort();
+    for (let i = 0; i < slides.length; i++) {
+      const filePath = path.join(carouselDir, slides[i]);
+      const storagePath = `${clientId}/${campaignId}/carousel/${slides[i]}`;
+
+      const fileBuffer = fs.readFileSync(filePath);
+      await supabase.storage.from('dental-campaigns').upload(storagePath, fileBuffer, {
+        contentType: 'image/png', upsert: true,
+      });
+
+      const { data: urlData } = supabase.storage.from('dental-campaigns').getPublicUrl(storagePath);
+
+      pieces.push({
+        campaign_id: campaignId,
+        piece_type: 'carousel_slide',
+        piece_index: i + 1,
+        content: { title: `Slide ${i + 1}` },
+        media_url: urlData.publicUrl,
+        approval_status: 'pending',
+      });
+      console.log(`[Pipeline] Uploaded slide: ${slides[i]}`);
+    }
+  }
+
+  // Upload ad creatives
+  const adsDir = path.join(outputDir, 'ads');
+  if (fs.existsSync(adsDir)) {
+    const ads = fs.readdirSync(adsDir).filter(f => f.endsWith('.png'));
+    for (const ad of ads) {
+      const filePath = path.join(adsDir, ad);
+      const storagePath = `${clientId}/${campaignId}/ads/${ad}`;
+
+      const fileBuffer = fs.readFileSync(filePath);
+      await supabase.storage.from('dental-campaigns').upload(storagePath, fileBuffer, {
+        contentType: 'image/png', upsert: true,
+      });
+
+      const { data: urlData } = supabase.storage.from('dental-campaigns').getPublicUrl(storagePath);
+
+      pieces.push({
+        campaign_id: campaignId,
+        piece_type: 'instagram_ad',
+        piece_index: 0,
+        content: { title: ad.replace('.png', '') },
+        media_url: urlData.publicUrl,
+        approval_status: 'pending',
+      });
+      console.log(`[Pipeline] Uploaded ad: ${ad}`);
+    }
+  }
+
+  // Save copy pieces
+  const copyDir = path.join(outputDir, 'copy');
+  if (fs.existsSync(copyDir)) {
+    const copyFiles = fs.readdirSync(copyDir).filter(f => f.endsWith('.txt') || f.endsWith('.json'));
+    for (const file of copyFiles) {
+      const content = fs.readFileSync(path.join(copyDir, file), 'utf-8');
+      const typeName = file.replace(/\.(txt|json)$/, '');
+      pieces.push({
+        campaign_id: campaignId,
+        piece_type: typeName === 'instagram_caption' ? 'instagram_caption' : typeName,
+        piece_index: 0,
+        content: { text: content },
+        approval_status: 'pending',
+      });
+      console.log(`[Pipeline] Saved copy: ${file}`);
+    }
+  }
+
+  // Insert all pieces
+  if (pieces.length > 0) {
+    const { error } = await supabase.from('campaign_pieces').insert(pieces);
+    if (error) {
+      console.error('[Pipeline] Failed to insert pieces:', error.message);
+    } else {
+      console.log(`[Pipeline] Saved ${pieces.length} pieces to Supabase`);
+    }
+  }
 }
 
 // CLI support
