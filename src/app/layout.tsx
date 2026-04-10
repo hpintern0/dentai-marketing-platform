@@ -5,6 +5,7 @@ import { Inter } from 'next/font/google';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
+import { ToastProvider } from '@/components/ui/toast';
 import {
   LayoutDashboard,
   Users,
@@ -40,7 +41,18 @@ export default function RootLayout({
 
   return (
     <html lang="pt-BR">
+      <head>
+        <title>DentAI — Marketing Odontológico com IA</title>
+        <meta name="description" content="Plataforma de automação de conteúdo com IA para agências de marketing odontológico" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <meta property="og:title" content="DentAI Marketing Platform" />
+        <meta property="og:description" content="Sistema completo de automação de conteúdo de marketing para clínicas odontológicas" />
+        <meta property="og:type" content="website" />
+        <meta name="theme-color" content="#1e3a5f" />
+      </head>
       <body className={inter.className}>
+        <ToastProvider>
         <div className="flex h-screen overflow-hidden">
           {/* Mobile overlay */}
           {sidebarOpen && (
@@ -138,6 +150,7 @@ export default function RootLayout({
             </main>
           </div>
         </div>
+        </ToastProvider>
       </body>
     </html>
   );
