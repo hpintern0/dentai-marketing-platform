@@ -61,7 +61,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       .eq('status', 'approved');
 
     // Run distribution in background — in-process runner, no Redis needed
-    const { runPipeline } = eval("require")('../../../../../pipeline/runner');
+    const { runPipeline } = eval("require")(require('path').join(process.cwd(), 'pipeline', 'runner'));
     runPipeline({
       ...(campaign.job_payload || {}),
       task_name: `publish_${id}_${Date.now()}`,

@@ -46,8 +46,9 @@ export async function POST(request: NextRequest) {
       .limit(5);
 
     // Parse brief using AI
-    // Dynamic import for the brief parser
-    const { parseBrief } = eval("require")('../../../../pipeline/agents/ai-brief-parser');
+    const path = eval("require")('path');
+    const briefParserPath = path.join(process.cwd(), 'pipeline', 'agents', 'ai-brief-parser');
+    const { parseBrief } = eval("require")(briefParserPath);
     const result = await parseBrief(message, client, recentCampaigns || []);
 
     // Save chat message

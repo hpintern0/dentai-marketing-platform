@@ -33,7 +33,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       .eq('id', id);
 
     // Run analysis in background (don't await)
-    const { analyzeInstagramProfile } = eval("require")('../../../../../pipeline/instagram/analyze-profile');
+    const { analyzeInstagramProfile } = eval("require")(require('path').join(process.cwd(), 'pipeline', 'instagram', 'analyze-profile'));
 
     analyzeInstagramProfile(reference.instagram_handle).then(async (insights: any) => {
       const supabaseUpdate = createServerClient();

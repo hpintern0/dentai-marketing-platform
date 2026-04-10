@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Start pipeline in background (don't await) — in-process runner, no Redis needed
-    const { runPipeline } = eval("require")('../../../../pipeline/runner');
+    const { runPipeline } = eval("require")(require('path').join(process.cwd(), 'pipeline', 'runner'));
     const pipelinePayload = {
       task_name: `campaign_${campaign_id}_${Date.now()}`,
       client_id: campaign.client_id,
