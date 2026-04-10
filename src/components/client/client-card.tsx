@@ -71,7 +71,7 @@ export function ClientCard({
           </div>
 
           <div className="min-w-0 flex-1">
-            <h3 className="truncate text-sm font-semibold text-gray-900 group-hover:text-dental-blue">
+            <h3 className="truncate text-sm font-semibold text-gray-900 group-hover:text-hp-purple">
               {client.name}
             </h3>
             <Badge variant="queued" className="mt-1">

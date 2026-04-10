@@ -4,9 +4,9 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 
 const colorStyles = {
-  blue: 'bg-dental-blue',
+  blue: 'bg-hp-purple',
   green: 'bg-dental-green',
-  teal: 'bg-dental-teal',
+  teal: 'bg-hp-accent',
   red: 'bg-red-500',
   yellow: 'bg-yellow-500',
   gray: 'bg-gray-400',

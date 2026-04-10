@@ -5,11 +5,11 @@ import { cn } from '@/lib/utils';
 
 const variantStyles = {
   primary:
-    'bg-dental-blue text-white hover:bg-dental-blue-700 focus-visible:ring-dental-blue-400',
+    'bg-hp-purple text-white hover:bg-hp-purple-700 focus-visible:ring-hp-purple-400',
   secondary:
-    'bg-dental-teal text-white hover:bg-dental-teal-700 focus-visible:ring-dental-teal-400',
+    'bg-hp-accent text-white hover:bg-hp-accent-700 focus-visible:ring-hp-accent-400',
   outline:
-    'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus-visible:ring-dental-blue-400',
+    'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus-visible:ring-hp-purple-400',
   ghost:
     'bg-transparent text-gray-700 hover:bg-gray-100 focus-visible:ring-gray-300',
   danger:

@@ -51,7 +51,7 @@ interface ClientData {
 const statusConfig: Record<string, { label: string; class: string }> = {
   draft: { label: 'Rascunho', class: 'badge-neutral' },
   generating: { label: 'Gerando', class: 'badge-info' },
-  review: { label: 'Em revisao', class: 'badge-warning' },
+  review: { label: 'Em revisão', class: 'badge-warning' },
   approved: { label: 'Aprovado', class: 'badge-success' },
   published: { label: 'Publicado', class: 'badge-success' },
 };
@@ -62,7 +62,7 @@ export default function ClientDetail({ client }: { client: ClientData }) {
       {/* Profile Header */}
       <div className="card">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-          <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-dental-blue-500 to-dental-teal-500 text-xl font-bold text-white">
+          <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-hp-purple-500 to-hp-accent-500 text-xl font-bold text-white">
             {client.avatar}
           </div>
           <div className="flex-1">
@@ -97,7 +97,7 @@ export default function ClientDetail({ client }: { client: ClientData }) {
         {/* Color Palette */}
         <div className="card">
           <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-gray-900">
-            <Palette className="h-4 w-4 text-dental-blue" />
+            <Palette className="h-4 w-4 text-hp-purple" />
             Paleta de Cores
           </h3>
           <div className="flex flex-wrap gap-3">
@@ -119,7 +119,7 @@ export default function ClientDetail({ client }: { client: ClientData }) {
         {/* Typography */}
         <div className="card">
           <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-gray-900">
-            <Type className="h-4 w-4 text-dental-blue" />
+            <Type className="h-4 w-4 text-hp-purple" />
             Tipografia
           </h3>
           <div className="space-y-3">
@@ -145,14 +145,14 @@ export default function ClientDetail({ client }: { client: ClientData }) {
         {/* Platforms */}
         <div className="card">
           <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-gray-900">
-            <Megaphone className="h-4 w-4 text-dental-blue" />
+            <Megaphone className="h-4 w-4 text-hp-purple" />
             Plataformas Ativas
           </h3>
           <div className="flex flex-wrap gap-2">
             {client.platforms.map((platform) => (
               <span
                 key={platform}
-                className="badge bg-dental-blue-50 text-dental-blue-700"
+                className="badge bg-hp-purple-50 text-hp-purple-700"
               >
                 {platform}
               </span>
@@ -163,8 +163,8 @@ export default function ClientDetail({ client }: { client: ClientData }) {
         {/* CTAs */}
         <div className="card">
           <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-gray-900">
-            <MousePointerClick className="h-4 w-4 text-dental-blue" />
-            CTAs Padrao
+            <MousePointerClick className="h-4 w-4 text-hp-purple" />
+            CTAs Padrão
           </h3>
           <ul className="space-y-2">
             {client.ctas.map((cta, idx) => (
@@ -172,7 +172,7 @@ export default function ClientDetail({ client }: { client: ClientData }) {
                 key={idx}
                 className="flex items-center gap-2 rounded-lg border border-gray-100 px-3 py-2 text-sm text-gray-700"
               >
-                <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded bg-dental-teal-50 text-[10px] font-bold text-dental-teal-700">
+                <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded bg-hp-accent-50 text-[10px] font-bold text-hp-accent-700">
                   {idx + 1}
                 </span>
                 {cta}
@@ -196,8 +196,8 @@ export default function ClientDetail({ client }: { client: ClientData }) {
       <div className="card">
         <div className="mb-4 flex items-center justify-between">
           <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-900">
-            <Calendar className="h-4 w-4 text-dental-blue" />
-            Historico de Campanhas
+            <Calendar className="h-4 w-4 text-hp-purple" />
+            Histórico de Campanhas
           </h3>
           <span className="text-xs text-gray-400">
             {client.campaigns.length} campanha{client.campaigns.length !== 1 ? 's' : ''}
@@ -238,7 +238,7 @@ export default function ClientDetail({ client }: { client: ClientData }) {
                       <td className="py-3">
                         <Link
                           href={`/campanhas/${campaign.id}`}
-                          className="text-dental-blue opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="text-hp-purple opacity-0 group-hover:opacity-100 transition-opacity"
                         >
                           <ChevronRight className="h-4 w-4" />
                         </Link>
@@ -259,8 +259,8 @@ export default function ClientDetail({ client }: { client: ClientData }) {
       {/* Reference Profiles */}
       <div className="card">
         <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-gray-900">
-          <Instagram className="h-4 w-4 text-dental-blue" />
-          Perfis de Referencia
+          <Instagram className="h-4 w-4 text-hp-purple" />
+          Perfis de Referência
         </h3>
         {client.references.length > 0 ? (
           <div className="flex flex-wrap gap-3">
@@ -269,14 +269,14 @@ export default function ClientDetail({ client }: { client: ClientData }) {
                 key={ref.id}
                 className="flex items-center gap-3 rounded-lg border border-gray-100 px-4 py-3"
               >
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-dental-blue-50 text-xs font-bold text-dental-blue-700">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-hp-purple-50 text-xs font-bold text-hp-purple-700">
                   {ref.name.charAt(0)}
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-900">{ref.name}</p>
                   <p className="text-xs text-gray-500">{ref.handle}</p>
                 </div>
-                <span className="badge bg-dental-teal-50 text-dental-teal-700 ml-2">
+                <span className="badge bg-hp-accent-50 text-hp-accent-700 ml-2">
                   {ref.platform}
                 </span>
               </div>
@@ -284,7 +284,7 @@ export default function ClientDetail({ client }: { client: ClientData }) {
           </div>
         ) : (
           <p className="py-4 text-center text-sm text-gray-400">
-            Nenhum perfil de referencia associado.
+            Nenhum perfil de referência associado.
           </p>
         )}
       </div>
@@ -292,7 +292,7 @@ export default function ClientDetail({ client }: { client: ClientData }) {
       {/* Assets Gallery Placeholder */}
       <div className="card">
         <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-gray-900">
-          <Image className="h-4 w-4 text-dental-blue" />
+          <Image className="h-4 w-4 text-hp-purple" />
           Galeria de Assets
         </h3>
         <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-200 py-12">
@@ -301,7 +301,7 @@ export default function ClientDetail({ client }: { client: ClientData }) {
             Nenhum asset carregado
           </p>
           <p className="mt-1 text-xs text-gray-400">
-            Logos, fotos do consultorio e materiais de marca aparecerao aqui.
+            Logos, fotos do consultório e materiais de marca aparecerão aqui.
           </p>
           <button className="btn-secondary mt-4 text-xs">
             Fazer Upload

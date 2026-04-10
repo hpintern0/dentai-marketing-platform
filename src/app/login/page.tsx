@@ -2,13 +2,14 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Sparkles } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 import { signIn } from '@/lib/auth';
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -31,16 +32,16 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-dental-blue-900 via-dental-blue-800 to-dental-blue-700 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#2D1054] via-[#371F54] to-[#482A6E] px-4">
       <div className="w-full max-w-md">
         {/* Brand */}
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-dental-teal shadow-lg">
-            <Sparkles className="h-7 w-7 text-white" />
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center">
+            <img src="/logo-hp.png" alt="HP Odonto" className="h-16 w-16 rounded-2xl" />
           </div>
-          <h1 className="text-3xl font-bold text-white">DentAI</h1>
+          <h1 className="text-3xl font-bold text-white">HP ODONTO</h1>
           <p className="mt-1 text-sm text-white/70">
-            Plataforma de Marketing Odontol&oacute;gico com IA
+            Plataforma de Marketing Odontol&oacute;gico
           </p>
         </div>
 
@@ -72,7 +73,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="seu@email.com"
-                className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none transition focus:border-dental-blue-500 focus:ring-2 focus:ring-dental-blue-500/20"
+                className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none transition focus:border-[#6B3FA0] focus:ring-2 focus:ring-[#6B3FA0]/20"
               />
             </div>
 
@@ -84,41 +85,44 @@ export default function LoginPage() {
               >
                 Senha
               </label>
-              <input
-                id="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none transition focus:border-dental-blue-500 focus:ring-2 focus:ring-dental-blue-500/20"
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 pr-10 text-sm text-gray-900 placeholder-gray-400 outline-none transition focus:border-[#6B3FA0] focus:ring-2 focus:ring-[#6B3FA0]/20"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
             </div>
 
             {/* Submit */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-lg bg-dental-blue-700 px-4 py-2.5 text-sm font-semibold text-white shadow transition hover:bg-dental-blue-600 focus:outline-none focus:ring-2 focus:ring-dental-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full rounded-lg bg-[#6B3FA0] px-4 py-2.5 text-sm font-semibold text-white shadow transition hover:bg-[#5A3589] focus:outline-none focus:ring-2 focus:ring-[#6B3FA0]/50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Entrando...' : 'Entrar'}
             </button>
           </form>
-
-          {/* Forgot password */}
-          <div className="mt-5 text-center">
-            <a
-              href="#"
-              className="text-sm text-dental-blue-600 hover:text-dental-blue-500 hover:underline"
-            >
-              Esqueci minha senha
-            </a>
-          </div>
         </div>
 
         {/* Footer note */}
         <p className="mt-6 text-center text-xs text-white/50">
-          &copy; 2026 DentAI. Todos os direitos reservados.
+          &copy; 2026 HP Odonto. Todos os direitos reservados.
         </p>
       </div>
     </div>

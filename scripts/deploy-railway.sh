@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "Deploying DentAI to Railway..."
+echo "Deploying HP Odonto to Railway..."
 
 # Check railway CLI
 if ! command -v railway &> /dev/null; then

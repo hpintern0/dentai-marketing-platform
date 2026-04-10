@@ -1,5 +1,5 @@
 /**
- * HTML Template Generators for DentAI Marketing Platform
+ * HTML Template Generators for HP Odonto Marketing Platform
  *
  * Produces clean, professional dental marketing visuals with:
  * - Gradient backgrounds, dental color schemes (blues, whites, clean lines)

@@ -32,7 +32,7 @@ const formatConfig: Record<string, { icon: typeof Image; label: string; color: s
   image: { icon: Image, label: 'Imagem', color: 'bg-blue-100 text-blue-600' },
   feed_static: { icon: Image, label: 'Imagem', color: 'bg-blue-100 text-blue-600' },
   carousel: { icon: Layers, label: 'Carrossel', color: 'bg-purple-100 text-purple-600' },
-  video: { icon: Video, label: 'Video', color: 'bg-pink-100 text-pink-600' },
+  video: { icon: Video, label: 'Vídeo', color: 'bg-pink-100 text-pink-600' },
   reels: { icon: Video, label: 'Reels', color: 'bg-pink-100 text-pink-600' },
   copy: { icon: Type, label: 'Copy', color: 'bg-teal-100 text-teal-600' },
   copy_only: { icon: Type, label: 'Copy', color: 'bg-teal-100 text-teal-600' },
@@ -140,7 +140,7 @@ export default function BibliotecaPage() {
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Biblioteca</h1>
         <p className="mt-1 text-sm text-gray-500">
-          {campaigns.length} conteudos aprovados e publicados
+          {campaigns.length} conteúdos aprovados e publicados
         </p>
       </div>
 
@@ -151,16 +151,16 @@ export default function BibliotecaPage() {
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              placeholder="Buscar conteudos..."
+              placeholder="Buscar conteúdos..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-lg border border-gray-200 py-2 pl-10 pr-4 text-sm focus:border-dental-blue focus:outline-none focus:ring-1 focus:ring-dental-blue"
+              className="w-full rounded-lg border border-gray-200 py-2 pl-10 pr-4 text-sm focus:border-hp-purple focus:outline-none focus:ring-1 focus:ring-hp-purple"
             />
           </div>
           <select
             value={filterClient}
             onChange={(e) => setFilterClient(e.target.value)}
-            className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-dental-blue focus:outline-none focus:ring-1 focus:ring-dental-blue"
+            className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-hp-purple focus:outline-none focus:ring-1 focus:ring-hp-purple"
           >
             {clients.map((c) => (
               <option key={c}>{c}</option>
@@ -169,7 +169,7 @@ export default function BibliotecaPage() {
           <select
             value={filterProcedure}
             onChange={(e) => setFilterProcedure(e.target.value)}
-            className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-dental-blue focus:outline-none focus:ring-1 focus:ring-dental-blue"
+            className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-hp-purple focus:outline-none focus:ring-1 focus:ring-hp-purple"
           >
             {procedures.map((p) => (
               <option key={p}>{p}</option>
@@ -178,12 +178,12 @@ export default function BibliotecaPage() {
           <select
             value={filterFormat}
             onChange={(e) => setFilterFormat(e.target.value)}
-            className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-dental-blue focus:outline-none focus:ring-1 focus:ring-dental-blue"
+            className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-hp-purple focus:outline-none focus:ring-1 focus:ring-hp-purple"
           >
             <option value="Todos">Todos os formatos</option>
             <option value="feed_static">Imagem</option>
             <option value="carousel">Carrossel</option>
-            <option value="reels">Reels / Video</option>
+            <option value="reels">Reels / Vídeo</option>
             <option value="copy_only">Copy</option>
             <option value="stories">Stories</option>
           </select>
@@ -196,14 +196,15 @@ export default function BibliotecaPage() {
           const format = getPrimaryFormat(item);
           const fmt = formatConfig[format] ?? formatConfig.multi_format;
           const FmtIcon = fmt.icon;
+          const previewText = (item.parsed_brief?.procedure_focus || item.name || '').slice(0, 80);
           return (
             <div
               key={item.id}
-              className="card group cursor-pointer transition-all hover:border-dental-blue-200 hover:shadow-md !p-0 overflow-hidden"
+              className="card group cursor-pointer transition-all hover:border-hp-purple-200 hover:shadow-md !p-0 overflow-hidden"
             >
               {/* Preview */}
-              <div className="relative flex h-40 items-center justify-center bg-gradient-to-br from-dental-blue-50 to-dental-teal-50">
-                <FmtIcon className="h-12 w-12 text-dental-blue-200" />
+              <div className="relative flex h-40 items-center justify-center bg-gradient-to-br from-hp-purple-50 to-hp-accent-50">
+                <FmtIcon className="h-12 w-12 text-hp-purple-200" />
                 <div className={`absolute top-3 left-3 flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-medium ${fmt.color}`}>
                   <FmtIcon className="h-3 w-3" />
                   {fmt.label}
@@ -221,9 +222,14 @@ export default function BibliotecaPage() {
               </div>
               {/* Info */}
               <div className="p-4">
-                <h3 className="text-sm font-semibold text-gray-900 group-hover:text-dental-blue truncate">
+                <h3 className="text-sm font-semibold text-gray-900 group-hover:text-hp-purple truncate">
                   {item.name}
                 </h3>
+                {previewText && (
+                  <p className="mt-1 text-xs text-gray-400 truncate">
+                    {previewText}
+                  </p>
+                )}
                 <div className="mt-2 flex items-center gap-1 text-xs text-gray-500">
                   <User className="h-3 w-3" />
                   {item.clients?.name ?? 'Cliente'}
@@ -238,7 +244,10 @@ export default function BibliotecaPage() {
                   </div>
                 )}
                 <div className="mt-3">
-                  <button className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dental-blue-200 py-1.5 text-xs font-medium text-dental-blue hover:bg-dental-blue-50 transition-colors">
+                  <button
+                    onClick={() => window.location.href = '/nova-campanha'}
+                    className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-hp-purple-200 py-1.5 text-xs font-medium text-hp-purple hover:bg-hp-purple-50 transition-colors"
+                  >
                     <RefreshCw className="h-3 w-3" />
                     Reutilizar
                   </button>
@@ -251,7 +260,7 @@ export default function BibliotecaPage() {
 
       {filtered.length === 0 && (
         <div className="py-12 text-center text-sm text-gray-500">
-          Nenhum conteudo encontrado.
+          Nenhum conteúdo encontrado.
         </div>
       )}
     </div>

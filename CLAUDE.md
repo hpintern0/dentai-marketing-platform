@@ -1,4 +1,4 @@
-# DentAI Marketing Platform
+# HP Odonto Marketing Platform
 
 ## Overview
 Complete AI-powered marketing automation platform for dental agencies. Generates content for Instagram with specialized dental knowledge. Uses Supabase Auth for authentication and role-based access.

@@ -19,8 +19,8 @@ import {
   CalendarDays,
   Menu,
   X,
-  Sparkles,
   LogOut,
+  Plus,
 } from 'lucide-react';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -34,6 +34,14 @@ const navItems = [
   { href: '/biblioteca', label: 'Biblioteca', icon: Library },
   { href: '/agendamentos', label: 'Agendamentos', icon: CalendarDays },
 ];
+
+function getPageTitle(pathname: string | null): string {
+  if (!pathname) return 'Dashboard';
+  const item = navItems.find(
+    (n) => pathname === n.href || pathname.startsWith(n.href + '/')
+  );
+  return item?.label ?? 'Dashboard';
+}
 
 export default function RootLayout({
   children,
@@ -62,14 +70,14 @@ export default function RootLayout({
     return (
       <html lang="pt-BR">
         <head>
-          <title>DentAI — Marketing Odontológico com IA</title>
+          <title>HP Odonto — Marketing Odontológico</title>
           <meta name="description" content="Plataforma de automação de conteúdo com IA para agências de marketing odontológico" />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
           <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-          <meta property="og:title" content="DentAI Marketing Platform" />
+          <meta property="og:title" content="HP Odonto Marketing Platform" />
           <meta property="og:description" content="Sistema completo de automação de conteúdo de marketing para clínicas odontológicas" />
           <meta property="og:type" content="website" />
-          <meta name="theme-color" content="#1e3a5f" />
+          <meta name="theme-color" content="#2D1054" />
         </head>
         <body className={inter.className}>
           <ToastProvider>
@@ -82,17 +90,19 @@ export default function RootLayout({
     );
   }
 
+  const pageTitle = getPageTitle(pathname);
+
   return (
     <html lang="pt-BR">
       <head>
-        <title>DentAI — Marketing Odontológico com IA</title>
+        <title>HP Odonto — Marketing Odontológico</title>
         <meta name="description" content="Plataforma de automação de conteúdo com IA para agências de marketing odontológico" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-        <meta property="og:title" content="DentAI Marketing Platform" />
+        <meta property="og:title" content="HP Odonto Marketing Platform" />
         <meta property="og:description" content="Sistema completo de automação de conteúdo de marketing para clínicas odontológicas" />
         <meta property="og:type" content="website" />
-        <meta name="theme-color" content="#1e3a5f" />
+        <meta name="theme-color" content="#2D1054" />
       </head>
       <body className={inter.className}>
         <ToastProvider>
@@ -108,19 +118,17 @@ export default function RootLayout({
 
           {/* Sidebar */}
           <aside
-            className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-gradient-to-b from-dental-blue-900 to-dental-blue-800 transition-transform duration-300 lg:static lg:translate-x-0 ${
+            className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-gradient-to-b from-[#2D1054] to-[#371F54] transition-transform duration-300 lg:static lg:translate-x-0 ${
               sidebarOpen ? 'translate-x-0' : '-translate-x-full'
             }`}
           >
             {/* Brand */}
             <div className="flex h-16 items-center gap-3 border-b border-white/10 px-6">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-dental-teal">
-                <Sparkles className="h-5 w-5 text-white" />
-              </div>
+              <img src="/logo-hp.png" alt="HP Odonto" className="h-10 w-10 rounded-lg object-cover" />
               <div>
-                <h1 className="text-lg font-bold text-white">DentAI</h1>
-                <p className="text-[10px] uppercase tracking-widest text-dental-teal-300">
-                  Marketing Platform
+                <h1 className="text-lg font-bold text-white">HP ODONTO</h1>
+                <p className="text-[10px] uppercase tracking-widest text-hp-purple-300">
+                  Marketing Odontológico
                 </p>
               </div>
               <button
@@ -144,7 +152,7 @@ export default function RootLayout({
                     onClick={() => setSidebarOpen(false)}
                     className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                       isActive
-                        ? 'bg-white/15 text-white shadow-sm'
+                        ? 'border-l-3 border-white bg-white/20 text-white shadow-sm'
                         : 'text-white/70 hover:bg-white/10 hover:text-white'
                     }`}
                   >
@@ -159,18 +167,16 @@ export default function RootLayout({
             <div className="border-t border-white/10 p-4">
               <div className="rounded-lg bg-white/10 p-3">
                 {user ? (
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-xs font-medium text-white/90">
-                        {user.email}
-                      </p>
-                    </div>
+                  <div className="space-y-3">
+                    <p className="truncate text-xs font-medium text-white/90">
+                      {user.email}
+                    </p>
                     <button
                       onClick={handleSignOut}
-                      title="Sair"
-                      className="flex-shrink-0 rounded-md p-1.5 text-white/60 transition hover:bg-white/10 hover:text-white"
+                      className="flex w-full items-center justify-center gap-2 rounded-md bg-white/10 px-3 py-2 text-sm font-medium text-white/80 transition hover:bg-white/20 hover:text-white"
                     >
                       <LogOut className="h-4 w-4" />
+                      Sair
                     </button>
                   </div>
                 ) : (
@@ -182,7 +188,7 @@ export default function RootLayout({
 
           {/* Main content */}
           <div className="flex flex-1 flex-col overflow-hidden">
-            {/* Top bar (mobile) */}
+            {/* Top bar */}
             <header className="flex h-16 items-center gap-4 border-b border-gray-200 bg-white px-4 lg:px-8">
               <button
                 className="lg:hidden"
@@ -190,25 +196,21 @@ export default function RootLayout({
               >
                 <Menu className="h-6 w-6 text-gray-600" />
               </button>
+              <h2 className="text-lg font-semibold text-gray-800">{pageTitle}</h2>
               <div className="flex-1" />
               <div className="flex items-center gap-3">
-                {user && (
-                  <span className="hidden text-sm text-gray-600 sm:inline">
-                    {user.email}
-                  </span>
-                )}
-                <div className="h-8 w-8 rounded-full bg-dental-blue-100 flex items-center justify-center">
-                  <span className="text-xs font-semibold text-dental-blue-700">
+                <Link
+                  href="/nova-campanha"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#6B3FA0] px-3 py-1.5 text-sm font-medium text-white shadow-sm transition hover:bg-[#5A3589]"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span className="hidden sm:inline">Nova Campanha</span>
+                </Link>
+                <div className="h-8 w-8 rounded-full bg-hp-purple-100 flex items-center justify-center">
+                  <span className="text-xs font-semibold text-hp-purple-700">
                     {user?.email?.substring(0, 2).toUpperCase() || '...'}
                   </span>
                 </div>
-                <button
-                  onClick={handleSignOut}
-                  title="Sair"
-                  className="rounded-md p-1.5 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700"
-                >
-                  <LogOut className="h-4 w-4" />
-                </button>
               </div>
             </header>
 

@@ -24,8 +24,8 @@ const statusIcons: Record<StepStatus, React.ReactNode> = {
   ),
   running: (
     <div className="relative h-3 w-3">
-      <div className="absolute inset-0 animate-ping rounded-full bg-dental-blue-400 opacity-50" />
-      <div className="h-3 w-3 rounded-full bg-dental-blue" />
+      <div className="absolute inset-0 animate-ping rounded-full bg-hp-purple-400 opacity-50" />
+      <div className="h-3 w-3 rounded-full bg-hp-purple" />
     </div>
   ),
   complete: (
@@ -47,7 +47,7 @@ const statusIcons: Record<StepStatus, React.ReactNode> = {
 
 const connectorColors: Record<StepStatus, string> = {
   queued: 'bg-gray-200',
-  running: 'bg-dental-blue-200',
+  running: 'bg-hp-purple-200',
   complete: 'bg-green-400',
   failed: 'bg-red-300',
   skipped: 'bg-yellow-300',
@@ -64,7 +64,7 @@ export function PipelineTracker({ steps, className }: PipelineTrackerProps) {
               className={cn(
                 'flex h-8 w-8 items-center justify-center rounded-full border-2',
                 step.status === 'queued' && 'border-gray-200 bg-gray-50',
-                step.status === 'running' && 'border-dental-blue-300 bg-dental-blue-50',
+                step.status === 'running' && 'border-hp-purple-300 bg-hp-purple-50',
                 step.status === 'complete' && 'border-green-300 bg-green-50',
                 step.status === 'failed' && 'border-red-300 bg-red-50',
                 step.status === 'skipped' && 'border-yellow-300 bg-yellow-50',

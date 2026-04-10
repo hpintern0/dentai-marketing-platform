@@ -1,4 +1,4 @@
-# DentAI Marketing Platform
+# HP Odonto Marketing Platform
 
 <!-- Badges -->
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen)

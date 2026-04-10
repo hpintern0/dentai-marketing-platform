@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "🦷 DentAI Marketing Platform — Setup"
+echo "🦷 HP Odonto Marketing Platform — Setup"
 echo "======================================"
 
 # Check Node.js

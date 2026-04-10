@@ -79,6 +79,6 @@ app.prepare().then(() => {
   };
 
   server.listen(port, hostname, () => {
-    console.log(`> DentAI server ready on http://${hostname}:${port}`);
+    console.log(`> HP Odonto server ready on http://${hostname}:${port}`);
   });
 });

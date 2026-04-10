@@ -155,7 +155,7 @@ ${copyList || 'Nenhuma copy disponível.'}
 
 ---
 
-*Gerado automaticamente pelo DentAI Marketing Platform*
+*Gerado automaticamente pelo HP Odonto Marketing Platform*
 `;
 }
 

@@ -1,4 +1,4 @@
-# DentAI Marketing Platform - Supabase Database Setup
+# HP Odonto Marketing Platform - Supabase Database Setup
 
 ## Prerequisites
 

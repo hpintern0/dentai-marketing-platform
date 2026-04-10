@@ -39,20 +39,20 @@ const suggestionChips = [
 ];
 
 const AGENT_LABELS: Record<string, { label: string; icon: typeof FileText }> = {
-  dental_research_agent: { label: 'Pesquisa de tendencias', icon: FileText },
-  dental_intelligence_agent: { label: 'Inteligencia dental', icon: FileText },
+  dental_research_agent: { label: 'Pesquisa de tendências', icon: FileText },
+  dental_intelligence_agent: { label: 'Inteligência dental', icon: FileText },
   ad_creative_designer: { label: 'Design de criativos', icon: Image },
-  carousel_agent: { label: 'Geracao de carrossel', icon: Image },
-  video_ad_specialist: { label: 'Criacao de video', icon: Video },
-  copywriter_agent: { label: 'Redacao de copy', icon: Type },
-  review_orchestrator: { label: 'Orquestracao de review', icon: FileText },
-  cfo_compliance_reviewer: { label: 'Revisao CFO', icon: FileText },
-  copy_reviewer: { label: 'Revisao de copy', icon: Type },
-  visual_reviewer: { label: 'Revisao visual', icon: Image },
-  dental_expert_reviewer: { label: 'Revisao especialista', icon: FileText },
-  issue_consolidator: { label: 'Consolidacao de issues', icon: FileText },
-  correction_agent: { label: 'Correcoes', icon: FileText },
-  distribution_agent: { label: 'Distribuicao', icon: Instagram },
+  carousel_agent: { label: 'Geração de carrossel', icon: Image },
+  video_ad_specialist: { label: 'Criação de vídeo', icon: Video },
+  copywriter_agent: { label: 'Redação de copy', icon: Type },
+  review_orchestrator: { label: 'Orquestração de review', icon: FileText },
+  cfo_compliance_reviewer: { label: 'Revisão CFO', icon: FileText },
+  copy_reviewer: { label: 'Revisão de copy', icon: Type },
+  visual_reviewer: { label: 'Revisão visual', icon: Image },
+  dental_expert_reviewer: { label: 'Revisão especialista', icon: FileText },
+  issue_consolidator: { label: 'Consolidação de issues', icon: FileText },
+  correction_agent: { label: 'Correções', icon: FileText },
+  distribution_agent: { label: 'Distribuição', icon: Instagram },
 };
 
 export default function NovaCampanhaPage() {
@@ -141,7 +141,7 @@ export default function NovaCampanhaPage() {
                 onChange={(e) =>
                   setSelectedClientId(e.target.value || null)
                 }
-                className="w-full appearance-none rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-dental-blue focus:outline-none focus:ring-1 focus:ring-dental-blue"
+                className="w-full appearance-none rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-hp-purple focus:outline-none focus:ring-1 focus:ring-hp-purple"
               >
                 <option value="">Selecione um cliente...</option>
                 {clientsList.map((c) => (
@@ -157,7 +157,7 @@ export default function NovaCampanhaPage() {
 
         {/* Client Summary Card */}
         {client && (
-          <div className="mt-3 rounded-lg border border-dental-blue-100 bg-dental-blue-50/50 p-4">
+          <div className="mt-3 rounded-lg border border-hp-purple-100 bg-hp-purple-50/50 p-4">
             <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
               <div>
                 <span className="font-medium text-gray-700">Especialidade:</span>{' '}
@@ -170,7 +170,7 @@ export default function NovaCampanhaPage() {
               {client.instagram_handle && (
                 <div>
                   <span className="font-medium text-gray-700">Instagram:</span>{' '}
-                  <span className="text-dental-blue">{client.instagram_handle}</span>
+                  <span className="text-hp-purple">{client.instagram_handle}</span>
                 </div>
               )}
               {client.tone && (
@@ -186,10 +186,10 @@ export default function NovaCampanhaPage() {
 
       {/* Brief Confirmation Card */}
       {currentBrief && (
-        <div className="card border-dental-teal-200 bg-dental-teal-50/30">
+        <div className="card border-hp-accent-200 bg-hp-accent-50/30">
           <div className="mb-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-dental-teal" />
+              <AlertCircle className="h-5 w-5 text-hp-accent" />
               <h3 className="font-semibold text-gray-900">Confirmar Brief</h3>
             </div>
           </div>
@@ -220,7 +220,7 @@ export default function NovaCampanhaPage() {
             </div>
             {currentBrief.parsed.restrictions.length > 0 && (
               <div className="sm:col-span-2">
-                <span className="font-medium text-gray-700">Restricoes:</span>{' '}
+                <span className="font-medium text-gray-700">Restrições:</span>{' '}
                 <span className="text-gray-600">
                   {currentBrief.parsed.restrictions.join(', ')}
                 </span>
@@ -266,12 +266,12 @@ export default function NovaCampanhaPage() {
         <div className="card">
           <div className="mb-4 flex items-center justify-between">
             <h3 className="font-semibold text-gray-900">
-              Pipeline de Geracao
+              Pipeline de Geração
             </h3>
             <div className="flex items-center gap-2">
               <div className="h-2 w-24 overflow-hidden rounded-full bg-gray-200">
                 <div
-                  className="h-full rounded-full bg-dental-blue transition-all duration-500"
+                  className="h-full rounded-full bg-hp-purple transition-all duration-500"
                   style={{ width: `${pipelineStatus.overall_progress}%` }}
                 />
               </div>
@@ -294,7 +294,7 @@ export default function NovaCampanhaPage() {
                     isDone
                       ? 'border-green-100 bg-green-50/50'
                       : isRunning
-                      ? 'border-dental-blue-100 bg-dental-blue-50/50'
+                      ? 'border-hp-purple-100 bg-hp-purple-50/50'
                       : isFailed
                       ? 'border-red-100 bg-red-50/50'
                       : 'border-gray-100'
@@ -305,7 +305,7 @@ export default function NovaCampanhaPage() {
                       isDone
                         ? 'bg-green-100 text-green-600'
                         : isRunning
-                        ? 'bg-dental-blue-100 text-dental-blue'
+                        ? 'bg-hp-purple-100 text-hp-purple'
                         : isFailed
                         ? 'bg-red-100 text-red-500'
                         : isSkipped
@@ -329,7 +329,7 @@ export default function NovaCampanhaPage() {
                         isDone
                           ? 'text-green-700'
                           : isRunning
-                          ? 'text-dental-blue'
+                          ? 'text-hp-purple'
                           : isFailed
                           ? 'text-red-600'
                           : 'text-gray-400'
@@ -370,10 +370,10 @@ export default function NovaCampanhaPage() {
       {pipelineComplete && campaignId && (
         <div className="card border-green-200 bg-green-50/30">
           <h3 className="mb-3 font-semibold text-gray-900">
-            Conteudo Gerado
+            Conteúdo Gerado
           </h3>
           <p className="text-sm text-gray-600 mb-4">
-            O pipeline foi concluido com sucesso. Veja a campanha completa para revisar e aprovar o conteudo gerado.
+            O pipeline foi concluído com sucesso. Veja a campanha completa para revisar e aprovar o conteúdo gerado.
           </p>
           <div className="flex justify-end">
             <Link href={`/campanhas/${campaignId}`} className="btn-primary">
@@ -389,12 +389,12 @@ export default function NovaCampanhaPage() {
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {messages.length === 0 && (
             <div className="flex gap-3">
-              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-dental-blue-100 text-dental-blue-700">
+              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-hp-purple-100 text-hp-purple-700">
                 <Bot className="h-4 w-4" />
               </div>
               <div className="max-w-[75%] rounded-xl px-4 py-3 text-sm bg-gray-100 text-gray-800">
                 <p>
-                  Ola! Sou o assistente de criacao de campanhas da DentAI. Selecione um cliente acima e me diga que tipo de campanha voce gostaria de criar. Posso ajudar com posts, carrosseis, reels e muito mais!
+                  Olá! Sou o assistente de criação de campanhas da HP Odonto. Selecione um cliente acima e me diga que tipo de campanha você gostaria de criar. Posso ajudar com posts, carrosséis, reels e muito mais!
                 </p>
               </div>
             </div>
@@ -412,7 +412,7 @@ export default function NovaCampanhaPage() {
                     ? 'bg-gray-200 text-gray-600'
                     : msg.role === 'system'
                     ? 'bg-red-100 text-red-600'
-                    : 'bg-dental-blue-100 text-dental-blue-700'
+                    : 'bg-hp-purple-100 text-hp-purple-700'
                 }`}
               >
                 {msg.role === 'user' ? (
@@ -424,7 +424,7 @@ export default function NovaCampanhaPage() {
               <div
                 className={`max-w-[75%] rounded-xl px-4 py-3 text-sm ${
                   msg.role === 'user'
-                    ? 'bg-dental-blue text-white'
+                    ? 'bg-hp-purple text-white'
                     : msg.role === 'system'
                     ? 'bg-red-50 text-red-700 border border-red-200'
                     : 'bg-gray-100 text-gray-800'
@@ -436,11 +436,11 @@ export default function NovaCampanhaPage() {
           ))}
           {chatLoading && (
             <div className="flex gap-3">
-              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-dental-blue-100 text-dental-blue-700">
+              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-hp-purple-100 text-hp-purple-700">
                 <Bot className="h-4 w-4" />
               </div>
               <div className="rounded-xl px-4 py-3 bg-gray-100">
-                <Loader2 className="h-4 w-4 animate-spin text-dental-blue" />
+                <Loader2 className="h-4 w-4 animate-spin text-hp-purple" />
               </div>
             </div>
           )}
@@ -454,7 +454,7 @@ export default function NovaCampanhaPage() {
               <button
                 key={chip}
                 onClick={() => handleChip(chip)}
-                className="rounded-full border border-dental-blue-200 bg-dental-blue-50 px-3 py-1.5 text-xs font-medium text-dental-blue-700 hover:bg-dental-blue-100 transition-colors"
+                className="rounded-full border border-hp-purple-200 bg-hp-purple-50 px-3 py-1.5 text-xs font-medium text-hp-purple-700 hover:bg-hp-purple-100 transition-colors"
               >
                 {chip}
               </button>
@@ -476,12 +476,12 @@ export default function NovaCampanhaPage() {
                   : 'Descreva a campanha que deseja criar...'
               }
               disabled={!selectedClientId || chatLoading}
-              className="flex-1 rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-dental-blue focus:outline-none focus:ring-1 focus:ring-dental-blue disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-hp-purple focus:outline-none focus:ring-1 focus:ring-hp-purple disabled:opacity-50 disabled:cursor-not-allowed"
             />
             <button
               onClick={handleSend}
               disabled={!selectedClientId || chatLoading || !input.trim()}
-              className="flex h-10 w-10 items-center justify-center rounded-lg bg-dental-blue text-white hover:bg-dental-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex h-10 w-10 items-center justify-center rounded-lg bg-hp-purple text-white hover:bg-hp-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Send className="h-4 w-4" />
             </button>

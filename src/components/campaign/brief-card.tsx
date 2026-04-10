@@ -42,7 +42,7 @@ export function BriefCard({
                   {field.label}
                 </span>
                 {field.inferred && (
-                  <span className="rounded bg-dental-blue-50 px-1.5 py-0.5 text-[10px] font-medium text-dental-blue-600">
+                  <span className="rounded bg-hp-purple-50 px-1.5 py-0.5 text-[10px] font-medium text-hp-purple-600">
                     inferido
                   </span>
                 )}

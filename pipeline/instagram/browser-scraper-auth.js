@@ -1,5 +1,5 @@
 /**
- * DentAI Instagram Browser Scraper — Authenticated Version
+ * HP Odonto Instagram Browser Scraper — Authenticated Version
  * Logs into Instagram with credentials, then scrapes profiles including videos.
  * Downloads reels/videos for Whisper transcription.
  *

@@ -361,14 +361,14 @@ export function ClientFormModal({
             onDrop={handleDrop}
             className={`flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 transition-colors cursor-pointer ${
               dragOver
-                ? 'border-dental-blue bg-dental-blue-50'
-                : 'border-gray-300 hover:border-dental-blue-300 hover:bg-gray-50'
+                ? 'border-hp-purple bg-hp-purple-50'
+                : 'border-gray-300 hover:border-hp-purple-300 hover:bg-gray-50'
             }`}
           >
             <Upload className="h-8 w-8 text-gray-400" />
             <p className="mt-2 text-sm text-gray-600">
               Arraste o logo aqui ou{' '}
-              <span className="font-medium text-dental-blue">
+              <span className="font-medium text-hp-purple">
                 clique para selecionar
               </span>
             </p>
@@ -414,7 +414,7 @@ export function ClientFormModal({
                     type="text"
                     value={form.color_palette[key]}
                     onChange={(e) => setColor(key, e.target.value)}
-                    className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-dental-blue focus:outline-none focus:ring-2 focus:ring-dental-blue-200"
+                    className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-hp-purple focus:outline-none focus:ring-2 focus:ring-hp-purple-200"
                   />
                 </div>
               </div>
@@ -458,7 +458,7 @@ export function ClientFormModal({
                   key={opt.value}
                   className={`inline-flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
                     checked
-                      ? 'border-dental-blue bg-dental-blue-50 text-dental-blue-700'
+                      ? 'border-hp-purple bg-hp-purple-50 text-hp-purple-700'
                       : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
                   }`}
                 >
@@ -471,7 +471,7 @@ export function ClientFormModal({
                   <span
                     className={`flex h-4 w-4 items-center justify-center rounded border text-white transition-colors ${
                       checked
-                        ? 'border-dental-blue bg-dental-blue'
+                        ? 'border-hp-purple bg-hp-purple'
                         : 'border-gray-300 bg-white'
                     }`}
                   >

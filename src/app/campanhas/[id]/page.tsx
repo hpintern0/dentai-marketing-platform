@@ -35,17 +35,17 @@ interface CampaignData {
 }
 
 const tabs = [
-  { id: 'overview', label: 'Visao Geral', icon: FileCheck },
+  { id: 'overview', label: 'Visão Geral', icon: FileCheck },
   { id: 'criativos', label: 'Criativos', icon: Image },
   { id: 'carrossel', label: 'Carrossel', icon: Layers },
-  { id: 'video', label: 'Video', icon: Video },
+  { id: 'video', label: 'Vídeo', icon: Video },
   { id: 'copy', label: 'Copy', icon: Type },
-  { id: 'aprovacao', label: 'Aprovacao', icon: Shield },
+  { id: 'aprovacao', label: 'Aprovação', icon: Shield },
 ];
 
 const statusConfig: Record<string, { icon: typeof CheckCircle2; class: string }> = {
   complete: { icon: CheckCircle2, class: 'text-green-500' },
-  running: { icon: Loader2, class: 'text-dental-blue animate-spin' },
+  running: { icon: Loader2, class: 'text-hp-purple animate-spin' },
   pending: { icon: Clock, class: 'text-gray-300' },
   queued: { icon: Clock, class: 'text-gray-300' },
   failed: { icon: XCircle, class: 'text-red-500' },
@@ -56,7 +56,7 @@ const campaignStatusBadge: Record<string, { label: string; class: string }> = {
   draft: { label: 'Rascunho', class: 'badge-neutral' },
   briefing: { label: 'Briefing', class: 'badge-info' },
   generating: { label: 'Gerando', class: 'badge-info' },
-  reviewing: { label: 'Em revisao', class: 'badge-warning' },
+  reviewing: { label: 'Em revisão', class: 'badge-warning' },
   approved: { label: 'Aprovado', class: 'badge-success' },
   scheduled: { label: 'Agendado', class: 'badge-info' },
   published: { label: 'Publicado', class: 'badge-success' },
@@ -64,20 +64,20 @@ const campaignStatusBadge: Record<string, { label: string; class: string }> = {
 };
 
 const AGENT_LABELS: Record<string, string> = {
-  dental_research_agent: 'Pesquisa de tendencias',
-  dental_intelligence_agent: 'Inteligencia dental',
+  dental_research_agent: 'Pesquisa de tendências',
+  dental_intelligence_agent: 'Inteligência dental',
   ad_creative_designer: 'Design de criativos',
-  carousel_agent: 'Geracao de carrossel',
-  video_ad_specialist: 'Criacao de video',
-  copywriter_agent: 'Redacao de copy',
-  review_orchestrator: 'Orquestracao de review',
-  cfo_compliance_reviewer: 'Revisao CFO',
-  copy_reviewer: 'Revisao de copy',
-  visual_reviewer: 'Revisao visual',
-  dental_expert_reviewer: 'Revisao especialista',
-  issue_consolidator: 'Consolidacao de issues',
-  correction_agent: 'Correcoes',
-  distribution_agent: 'Distribuicao',
+  carousel_agent: 'Geração de carrossel',
+  video_ad_specialist: 'Criação de vídeo',
+  copywriter_agent: 'Redação de copy',
+  review_orchestrator: 'Orquestração de review',
+  cfo_compliance_reviewer: 'Revisão CFO',
+  copy_reviewer: 'Revisão de copy',
+  visual_reviewer: 'Revisão visual',
+  dental_expert_reviewer: 'Revisão especialista',
+  issue_consolidator: 'Consolidação de issues',
+  correction_agent: 'Correções',
+  distribution_agent: 'Distribuição',
 };
 
 export default function CampanhaDetailPage() {
@@ -88,6 +88,18 @@ export default function CampanhaDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
+  const [approving, setApproving] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [showPublishConfirm, setShowPublishConfirm] = useState(false);
+
+  // Auto-dismiss toast
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
   useEffect(() => {
     async function fetchCampaign() {
@@ -95,7 +107,7 @@ export default function CampanhaDetailPage() {
       setError(null);
       try {
         const res = await fetch(`/api/campaigns/${campaignId}`);
-        if (!res.ok) throw new Error('Campanha nao encontrada');
+        if (!res.ok) throw new Error('Campanha não encontrada');
         const json = await res.json();
         setCampaign(json.data ?? json);
       } catch (err: any) {
@@ -108,24 +120,37 @@ export default function CampanhaDetailPage() {
   }, [campaignId]);
 
   const handleApprove = async () => {
+    setApproving(true);
     try {
       const res = await fetch(`/api/campaigns/${campaignId}/approve`, { method: 'POST' });
       if (res.ok) {
         setCampaign((prev) => prev ? { ...prev, status: 'approved' } : prev);
+        setToast({ message: 'Campanha aprovada com sucesso!', type: 'success' });
+      } else {
+        setToast({ message: 'Erro ao aprovar campanha. Tente novamente.', type: 'error' });
       }
     } catch {
-      // silently fail
+      setToast({ message: 'Erro ao aprovar campanha. Tente novamente.', type: 'error' });
+    } finally {
+      setApproving(false);
     }
   };
 
   const handlePublish = async () => {
+    setShowPublishConfirm(false);
+    setPublishing(true);
     try {
       const res = await fetch(`/api/campaigns/${campaignId}/publish`, { method: 'POST' });
       if (res.ok) {
         setCampaign((prev) => prev ? { ...prev, status: 'published' } : prev);
+        setToast({ message: 'Campanha publicada com sucesso!', type: 'success' });
+      } else {
+        setToast({ message: 'Erro ao publicar campanha. Tente novamente.', type: 'error' });
       }
     } catch {
-      // silently fail
+      setToast({ message: 'Erro ao publicar campanha. Tente novamente.', type: 'error' });
+    } finally {
+      setPublishing(false);
     }
   };
 
@@ -173,7 +198,7 @@ export default function CampanhaDetailPage() {
         <div className="card border-red-200 bg-red-50">
           <div className="flex items-center gap-2 text-red-700">
             <AlertCircle className="h-5 w-5" />
-            <p className="text-sm font-medium">{error ?? 'Campanha nao encontrada'}</p>
+            <p className="text-sm font-medium">{error ?? 'Campanha não encontrada'}</p>
           </div>
         </div>
       </div>
@@ -186,6 +211,52 @@ export default function CampanhaDetailPage() {
 
   return (
     <div className="space-y-6">
+      {/* Toast Notification */}
+      {toast && (
+        <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium shadow-lg transition-all ${
+          toast.type === 'success'
+            ? 'bg-green-50 border border-green-200 text-green-800'
+            : 'bg-red-50 border border-red-200 text-red-800'
+        }`}>
+          {toast.type === 'success' ? (
+            <CheckCircle2 className="h-4 w-4 text-green-500" />
+          ) : (
+            <AlertCircle className="h-4 w-4 text-red-500" />
+          )}
+          {toast.message}
+          <button onClick={() => setToast(null)} className="ml-2 text-gray-400 hover:text-gray-600">
+            <XCircle className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+
+      {/* Publish Confirmation Dialog */}
+      {showPublishConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="mx-4 w-full max-w-sm rounded-xl bg-white p-6 shadow-xl">
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">Confirmar publicação</h2>
+            <p className="text-sm text-gray-600 mb-6">
+              Tem certeza que deseja publicar esta campanha? Esta ação distribuirá o conteúdo para as plataformas configuradas.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowPublishConfirm(false)}
+                className="btn-secondary flex-1"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handlePublish}
+                className="btn-primary flex-1 gap-2 bg-hp-accent hover:bg-hp-accent-700"
+              >
+                <Send className="h-4 w-4" />
+                Publicar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Back + Header */}
       <div>
         <Link
@@ -212,19 +283,29 @@ export default function CampanhaDetailPage() {
             {campaign.status === 'reviewing' && (
               <button
                 onClick={handleApprove}
+                disabled={approving}
                 className="btn-primary gap-2"
               >
-                <CheckCircle2 className="h-4 w-4" />
-                Aprovar
+                {approving ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <CheckCircle2 className="h-4 w-4" />
+                )}
+                {approving ? 'Aprovando...' : 'Aprovar'}
               </button>
             )}
             {campaign.status === 'approved' && (
               <button
-                onClick={handlePublish}
-                className="btn-primary gap-2 bg-dental-teal hover:bg-dental-teal-700"
+                onClick={() => setShowPublishConfirm(true)}
+                disabled={publishing}
+                className="btn-primary gap-2 bg-hp-accent hover:bg-hp-accent-700"
               >
-                <Send className="h-4 w-4" />
-                Publicar
+                {publishing ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
+                {publishing ? 'Publicando...' : 'Publicar'}
               </button>
             )}
           </div>
@@ -235,7 +316,7 @@ export default function CampanhaDetailPage() {
       {pipelineAgents.length > 0 && (
         <div className="card">
           <h2 className="mb-4 text-lg font-semibold text-gray-900">
-            Timeline de Execucao
+            Timeline de Execução
           </h2>
           <div className="space-y-3">
             {pipelineAgents.map((agent: any, idx: number) => {
@@ -326,7 +407,7 @@ export default function CampanhaDetailPage() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
                   isActive
-                    ? 'border-dental-blue text-dental-blue'
+                    ? 'border-hp-purple text-hp-purple'
                     : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
                 }`}
               >
@@ -342,7 +423,7 @@ export default function CampanhaDetailPage() {
       {activeTab === 'overview' && (
         <div className="card">
           <h3 className="mb-4 text-lg font-semibold text-gray-900">
-            Informacoes da Campanha
+            Informações da Campanha
           </h3>
           <div className="space-y-4 text-sm">
             <div>
@@ -378,7 +459,7 @@ export default function CampanhaDetailPage() {
       {activeTab === 'aprovacao' && (
         <div className="card">
           <h3 className="mb-4 text-lg font-semibold text-gray-900">
-            Resumo de Aprovacao
+            Resumo de Aprovação
           </h3>
           {campaign.status === 'approved' || campaign.status === 'published' ? (
             <div className="rounded-lg bg-green-50 border border-green-200 p-4 text-center">
@@ -390,21 +471,26 @@ export default function CampanhaDetailPage() {
           ) : campaign.status === 'reviewing' ? (
             <div className="space-y-4">
               <p className="text-sm text-gray-600">
-                Esta campanha esta aguardando sua revisao e aprovacao.
+                Esta campanha está aguardando sua revisão e aprovação.
               </p>
               <div className="flex gap-3">
                 <button
                   onClick={handleApprove}
+                  disabled={approving}
                   className="btn-primary gap-2"
                 >
-                  <CheckCircle2 className="h-4 w-4" />
-                  Aprovar Campanha
+                  {approving ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <CheckCircle2 className="h-4 w-4" />
+                  )}
+                  {approving ? 'Aprovando...' : 'Aprovar Campanha'}
                 </button>
               </div>
             </div>
           ) : (
             <p className="text-center text-sm text-gray-500 py-6">
-              Aguardando geracao de conteudo para revisao.
+              Aguardando geração de conteúdo para revisão.
             </p>
           )}
         </div>
@@ -421,17 +507,17 @@ export default function CampanhaDetailPage() {
             </div>
             <p className="text-sm font-medium text-gray-900">
               {campaign.status === 'generating'
-                ? 'Gerando conteudo...'
+                ? 'Gerando conteúdo...'
                 : campaign.status === 'draft' || campaign.status === 'briefing'
-                ? 'Aguardando geracao...'
-                : 'Conteudo gerado'}
+                ? 'Aguardando geração...'
+                : 'Conteúdo gerado'}
             </p>
             <p className="mt-1 text-xs text-gray-500">
               {campaign.status === 'generating'
-                ? 'O pipeline esta processando esta secao. Aguarde.'
+                ? 'O pipeline está processando esta seção. Aguarde.'
                 : campaign.status === 'draft' || campaign.status === 'briefing'
-                ? 'Inicie o pipeline para gerar o conteudo desta secao.'
-                : 'Os arquivos gerados estao disponiveis no armazenamento da campanha.'}
+                ? 'Inicie o pipeline para gerar o conteúdo desta seção.'
+                : 'Os arquivos gerados estão disponíveis no armazenamento da campanha.'}
             </p>
           </div>
         </div>

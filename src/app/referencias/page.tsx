@@ -99,7 +99,7 @@ export default function ReferenciasPage() {
       if (filterCategory !== 'Todas') params.set('category', filterCategory);
 
       const res = await fetch(`/api/references?${params}`);
-      if (!res.ok) throw new Error('Erro ao carregar referencias');
+      if (!res.ok) throw new Error('Erro ao carregar referências');
       const json = await res.json();
       setReferences(Array.isArray(json.data) ? json.data : Array.isArray(json) ? json : []);
     } catch (err: any) {
@@ -184,7 +184,7 @@ export default function ReferenciasPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Perfis de Referencia</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Perfis de Referência</h1>
           <p className="mt-1 text-sm text-gray-500">Carregando...</p>
         </div>
         <div className="card animate-pulse">
@@ -204,7 +204,7 @@ export default function ReferenciasPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Perfis de Referencia</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Perfis de Referência</h1>
         </div>
         <div className="card border-red-200 bg-red-50">
           <div className="flex items-center gap-2 text-red-700">
@@ -222,10 +222,10 @@ export default function ReferenciasPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
-            Perfis de Referencia
+            Perfis de Referência
           </h1>
           <p className="mt-1 text-sm text-gray-500">
-            Analise perfis de referencia para gerar conteudo inspirado
+            Analise perfis de referência para gerar conteúdo inspirado
           </p>
         </div>
         <button
@@ -247,13 +247,13 @@ export default function ReferenciasPage() {
               placeholder="Buscar por handle ou cliente..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-lg border border-gray-200 py-2 pl-10 pr-4 text-sm focus:border-dental-blue focus:outline-none focus:ring-1 focus:ring-dental-blue"
+              className="w-full rounded-lg border border-gray-200 py-2 pl-10 pr-4 text-sm focus:border-hp-purple focus:outline-none focus:ring-1 focus:ring-hp-purple"
             />
           </div>
           <select
             value={filterSpecialty}
             onChange={(e) => setFilterSpecialty(e.target.value)}
-            className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-dental-blue focus:outline-none focus:ring-1 focus:ring-dental-blue"
+            className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-hp-purple focus:outline-none focus:ring-1 focus:ring-hp-purple"
           >
             {specialties.map((s) => (
               <option key={s}>{s}</option>
@@ -262,7 +262,7 @@ export default function ReferenciasPage() {
           <select
             value={filterCategory}
             onChange={(e) => setFilterCategory(e.target.value)}
-            className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-dental-blue focus:outline-none focus:ring-1 focus:ring-dental-blue"
+            className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-hp-purple focus:outline-none focus:ring-1 focus:ring-hp-purple"
           >
             {categories.map((c) => (
               <option key={c}>{c}</option>
@@ -292,10 +292,10 @@ export default function ReferenciasPage() {
                 Status
               </th>
               <th className="hidden px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 lg:table-cell">
-                Ultima Analise
+                Última Análise
               </th>
               <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
-                Acoes
+                Ações
               </th>
             </tr>
           </thead>
@@ -303,7 +303,7 @@ export default function ReferenciasPage() {
             {filtered.length === 0 ? (
               <tr>
                 <td colSpan={7} className="py-12 text-center text-sm text-gray-500">
-                  Nenhum perfil de referencia encontrado.
+                  Nenhum perfil de referência encontrado.
                 </td>
               </tr>
             ) : (
@@ -320,7 +320,7 @@ export default function ReferenciasPage() {
                             setExpandedId(isExpanded ? null : profile.id)
                           }
                         >
-                          <td className="px-6 py-4 text-sm font-medium text-dental-blue">
+                          <td className="px-6 py-4 text-sm font-medium text-hp-purple">
                             {profile.instagram_handle}
                           </td>
                           <td className="hidden px-6 py-4 text-sm text-gray-600 md:table-cell">
@@ -364,7 +364,7 @@ export default function ReferenciasPage() {
 
                         {/* Expanded Insights Panel */}
                         {isExpanded && profile.insights && (
-                          <div className="border-t border-gray-100 bg-gradient-to-b from-dental-blue-50/30 to-white px-6 py-5 space-y-6">
+                          <div className="border-t border-gray-100 bg-gradient-to-b from-hp-purple-50/30 to-white px-6 py-5 space-y-6">
                             {/* Summary Section */}
                             {(profile.insights.profile_summary || profile.insights.specialty_focus || profile.insights.target_audience || profile.insights.tone_of_voice) && (
                               <div>
@@ -377,13 +377,13 @@ export default function ReferenciasPage() {
                                     <InsightText icon={Target} title="Foco de Especialidade" text={profile.insights.specialty_focus} />
                                   )}
                                   {profile.insights.target_audience && (
-                                    <InsightText icon={Eye} title="Publico-Alvo" text={profile.insights.target_audience} />
+                                    <InsightText icon={Eye} title="Público-Alvo" text={profile.insights.target_audience} />
                                   )}
                                   {(profile.insights.tone_of_voice || profile.insights.predominant_tone) && (
                                     <InsightText icon={Palette} title="Tom de Voz" text={profile.insights.tone_of_voice || profile.insights.predominant_tone || ''} />
                                   )}
                                   {profile.insights.posting_frequency && (
-                                    <InsightText icon={Calendar} title="Frequencia" text={
+                                    <InsightText icon={Calendar} title="Frequência" text={
                                       profile.insights.content_strategy?.posting_frequency || profile.insights.posting_frequency || ''
                                     } />
                                   )}
@@ -394,16 +394,16 @@ export default function ReferenciasPage() {
                             {/* Content Strategy Section */}
                             {profile.insights.content_strategy && (
                               <div>
-                                <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-3">Estrategia de Conteudo</h3>
+                                <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-3">Estratégia de Conteúdo</h3>
                                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                                   {profile.insights.content_strategy.primary_content_types && profile.insights.content_strategy.primary_content_types.length > 0 && (
-                                    <InsightCard icon={FileText} title="Tipos de Conteudo" items={profile.insights.content_strategy.primary_content_types} />
+                                    <InsightCard icon={FileText} title="Tipos de Conteúdo" items={profile.insights.content_strategy.primary_content_types} />
                                   )}
                                   {profile.insights.content_strategy.content_pillars && profile.insights.content_strategy.content_pillars.length > 0 && (
-                                    <InsightCard icon={Zap} title="Pilares de Conteudo" items={profile.insights.content_strategy.content_pillars} />
+                                    <InsightCard icon={Zap} title="Pilares de Conteúdo" items={profile.insights.content_strategy.content_pillars} />
                                   )}
                                   {profile.insights.content_strategy.posting_frequency && (
-                                    <InsightText icon={Calendar} title="Frequencia de Postagem" text={profile.insights.content_strategy.posting_frequency} />
+                                    <InsightText icon={Calendar} title="Frequência de Postagem" text={profile.insights.content_strategy.posting_frequency} />
                                   )}
                                 </div>
                               </div>
@@ -424,14 +424,14 @@ export default function ReferenciasPage() {
                                 <InsightCard icon={Hash} title="Hashtags" items={profile.insights.hashtag_usage} />
                               )}
                               {profile.insights.cta_patterns && profile.insights.cta_patterns.length > 0 && (
-                                <InsightCard icon={Target} title="Padroes de CTA" items={profile.insights.cta_patterns} />
+                                <InsightCard icon={Target} title="Padrões de CTA" items={profile.insights.cta_patterns} />
                               )}
                             </div>
 
                             {/* SWOT-like Section */}
                             {(profile.insights.strengths || profile.insights.weaknesses || profile.insights.opportunities || profile.insights.recommendations) && (
                               <div>
-                                <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-3">Analise Estrategica</h3>
+                                <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-3">Análise Estratégica</h3>
                                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                   {profile.insights.strengths && profile.insights.strengths.length > 0 && (
                                     <InsightCard icon={ThumbsUp} title="Pontos Fortes" items={profile.insights.strengths} />
@@ -443,7 +443,7 @@ export default function ReferenciasPage() {
                                     <InsightCard icon={Lightbulb} title="Oportunidades" items={profile.insights.opportunities} />
                                   )}
                                   {profile.insights.recommendations && profile.insights.recommendations.length > 0 && (
-                                    <InsightCard icon={CheckCircle} title="Recomendacoes" items={profile.insights.recommendations} />
+                                    <InsightCard icon={CheckCircle} title="Recomendações" items={profile.insights.recommendations} />
                                   )}
                                 </div>
                               </div>
@@ -452,7 +452,7 @@ export default function ReferenciasPage() {
                             {/* Video Strategy */}
                             {profile.insights.video_strategy && (
                               <div>
-                                <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-3">Estrategia de Video</h3>
+                                <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-3">Estratégia de Vídeo</h3>
                                 {typeof profile.insights.video_strategy === 'string' ? (
                                   <InsightText icon={Video} title="Video" text={profile.insights.video_strategy} />
                                 ) : (
@@ -483,8 +483,8 @@ export default function ReferenciasPage() {
                           <div className="border-t border-gray-100 px-6 py-8 text-center">
                             <p className="text-sm text-gray-500">
                               {(profile.analysis_status === 'processing' || profile.analysis_status === 'analisando')
-                                ? 'Analise em andamento...'
-                                : 'Nenhuma analise disponivel. Clique em "Analisar agora" para iniciar.'}
+                                ? 'Análise em andamento...'
+                                : 'Nenhuma análise disponível. Clique em "Analisar agora" para iniciar.'}
                             </p>
                           </div>
                         )}
@@ -520,7 +520,7 @@ export default function ReferenciasPage() {
                   placeholder="@perfil"
                   value={formHandle}
                   onChange={(e) => setFormHandle(e.target.value)}
-                  className="w-full rounded-lg border border-gray-200 px-4 py-2 text-sm focus:border-dental-blue focus:outline-none focus:ring-1 focus:ring-dental-blue"
+                  className="w-full rounded-lg border border-gray-200 px-4 py-2 text-sm focus:border-hp-purple focus:outline-none focus:ring-1 focus:ring-hp-purple"
                 />
               </div>
               <div>
@@ -530,14 +530,14 @@ export default function ReferenciasPage() {
                 <select
                   value={formSpecialty}
                   onChange={(e) => setFormSpecialty(e.target.value)}
-                  className="w-full rounded-lg border border-gray-200 px-4 py-2 text-sm focus:border-dental-blue focus:outline-none focus:ring-1 focus:ring-dental-blue"
+                  className="w-full rounded-lg border border-gray-200 px-4 py-2 text-sm focus:border-hp-purple focus:outline-none focus:ring-1 focus:ring-hp-purple"
                 >
                   <option value="">Selecione...</option>
-                  <option value="estetica">Odontologia Estetica</option>
+                  <option value="estetica">Odontologia Estética</option>
                   <option value="ortodontia">Ortodontia</option>
                   <option value="implantodontia">Implantodontia</option>
-                  <option value="clinica_geral">Clinica Geral</option>
-                  <option value="harmonizacao">Harmonizacao</option>
+                  <option value="clinica_geral">Clínica Geral</option>
+                  <option value="harmonizacao">Harmonização</option>
                   <option value="periodontia">Periodontia</option>
                 </select>
               </div>
@@ -548,14 +548,14 @@ export default function ReferenciasPage() {
                 <select
                   value={formCategory}
                   onChange={(e) => setFormCategory(e.target.value)}
-                  className="w-full rounded-lg border border-gray-200 px-4 py-2 text-sm focus:border-dental-blue focus:outline-none focus:ring-1 focus:ring-dental-blue"
+                  className="w-full rounded-lg border border-gray-200 px-4 py-2 text-sm focus:border-hp-purple focus:outline-none focus:ring-1 focus:ring-hp-purple"
                 >
                   <option value="">Selecione...</option>
                   <option value="benchmark_nacional">Benchmark Nacional</option>
                   <option value="benchmark_regional">Benchmark Regional</option>
                   <option value="concorrente_direto">Concorrente Direto</option>
-                  <option value="inspiracao_estetica">Inspiracao Estetica</option>
-                  <option value="referencia_educativa">Referencia Educativa</option>
+                  <option value="inspiracao_estetica">Inspiração Estética</option>
+                  <option value="referencia_educativa">Referência Educativa</option>
                 </select>
               </div>
               <div>
@@ -565,7 +565,7 @@ export default function ReferenciasPage() {
                 <select
                   value={formClientId}
                   onChange={(e) => setFormClientId(e.target.value)}
-                  className="w-full rounded-lg border border-gray-200 px-4 py-2 text-sm focus:border-dental-blue focus:outline-none focus:ring-1 focus:ring-dental-blue"
+                  className="w-full rounded-lg border border-gray-200 px-4 py-2 text-sm focus:border-hp-purple focus:outline-none focus:ring-1 focus:ring-hp-purple"
                 >
                   <option value="">Selecione...</option>
                   {clients.map((c) => (
@@ -615,7 +615,7 @@ function InsightCard({
   return (
     <div className={`rounded-lg border border-gray-200 bg-white p-4 ${className}`}>
       <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-900">
-        <Icon className="h-4 w-4 text-dental-teal" />
+        <Icon className="h-4 w-4 text-hp-accent" />
         {title}
       </div>
       <ul className="space-y-1">
@@ -643,7 +643,7 @@ function InsightText({
   return (
     <div className={`rounded-lg border border-gray-200 bg-white p-4 ${className}`}>
       <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-900">
-        <Icon className="h-4 w-4 text-dental-teal" />
+        <Icon className="h-4 w-4 text-hp-accent" />
         {title}
       </div>
       <p className="text-sm text-gray-600">{text}</p>

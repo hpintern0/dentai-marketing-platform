@@ -29,9 +29,9 @@ interface ScheduledPost {
   clients?: { id: string; name: string };
 }
 
-const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'];
+const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 const MONTHS = [
-  'Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho',
+  'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
 ];
 
@@ -98,15 +98,15 @@ export default function AgendamentosPage() {
 
     const days: { day: number; inMonth: boolean; dateStr: string }[] = [];
 
-    // Previous month filler
+    // Previous month filler — when month is 0 (January), previous month is December (12) of previous year
     for (let i = firstDay - 1; i >= 0; i--) {
       const d = prevDays - i;
-      const m = month === 0 ? 12 : month;
-      const y = month === 0 ? year - 1 : year;
+      const prevMonth = month === 0 ? 12 : month;
+      const prevYear = month === 0 ? year - 1 : year;
       days.push({
         day: d,
         inMonth: false,
-        dateStr: `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`,
+        dateStr: `${prevYear}-${String(prevMonth).padStart(2, '0')}-${String(d).padStart(2, '0')}`,
       });
     }
 
@@ -122,12 +122,12 @@ export default function AgendamentosPage() {
     // Next month filler
     const remaining = 42 - days.length;
     for (let d = 1; d <= remaining; d++) {
-      const m = month + 2 > 12 ? 1 : month + 2;
-      const y = month + 2 > 12 ? year + 1 : year;
+      const nextMonth = month + 2 > 12 ? 1 : month + 2;
+      const nextYear = month + 2 > 12 ? year + 1 : year;
       days.push({
         day: d,
         inMonth: false,
-        dateStr: `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`,
+        dateStr: `${nextYear}-${String(nextMonth).padStart(2, '0')}-${String(d).padStart(2, '0')}`,
       });
     }
 
@@ -156,6 +156,10 @@ export default function AgendamentosPage() {
 
   const prevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
   const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
+  const goToToday = () => {
+    const now = new Date();
+    setCurrentDate(new Date(now.getFullYear(), now.getMonth(), 1));
+  };
 
   const todayStr = new Date().toISOString().split('T')[0];
 
@@ -165,7 +169,7 @@ export default function AgendamentosPage() {
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Agendamentos</h1>
         <p className="mt-1 text-sm text-gray-500">
-          Calendario de publicacoes agendadas
+          Calendário de publicações agendadas
         </p>
       </div>
 
@@ -188,11 +192,17 @@ export default function AgendamentosPage() {
           >
             <ChevronLeft className="h-5 w-5 text-gray-600" />
           </button>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <h2 className="text-lg font-semibold text-gray-900">
               {MONTHS[month]} {year}
             </h2>
             {loading && <Loader2 className="h-4 w-4 animate-spin text-gray-400" />}
+            <button
+              onClick={goToToday}
+              className="rounded-lg border border-gray-200 px-3 py-1 text-xs font-medium text-gray-600 hover:bg-gray-100 transition-colors"
+            >
+              Hoje
+            </button>
           </div>
           <button
             onClick={nextMonth}
@@ -229,7 +239,7 @@ export default function AgendamentosPage() {
                 <div
                   className={`mb-1 flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium ${
                     isToday
-                      ? 'bg-dental-blue text-white'
+                      ? 'bg-hp-purple text-white'
                       : cell.inMonth
                       ? 'text-gray-900'
                       : 'text-gray-300'
@@ -281,7 +291,7 @@ export default function AgendamentosPage() {
       {/* Empty state */}
       {!loading && posts.length === 0 && !error && (
         <div className="py-12 text-center text-sm text-gray-500">
-          Nenhum agendamento para este mes.
+          Nenhum agendamento para este mês.
         </div>
       )}
 
@@ -300,11 +310,11 @@ export default function AgendamentosPage() {
 
             <div className="space-y-4">
               {/* Preview */}
-              <div className="flex h-32 items-center justify-center rounded-lg bg-gradient-to-br from-dental-blue-50 to-dental-teal-50">
+              <div className="flex h-32 items-center justify-center rounded-lg bg-gradient-to-br from-hp-purple-50 to-hp-accent-50">
                 {(() => {
                   const format = selectedPost.content_type ?? 'image';
                   const Icon = formatIcons[format] || Image;
-                  return <Icon className="h-10 w-10 text-dental-blue-300" />;
+                  return <Icon className="h-10 w-10 text-hp-purple-300" />;
                 })()}
               </div>
 

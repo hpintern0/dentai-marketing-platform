@@ -151,7 +151,7 @@ export default function ClientesPage() {
               placeholder="Buscar por nome, Instagram ou cidade..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-lg border border-gray-200 py-2 pl-10 pr-4 text-sm focus:border-dental-blue focus:outline-none focus:ring-1 focus:ring-dental-blue"
+              className="w-full rounded-lg border border-gray-200 py-2 pl-10 pr-4 text-sm focus:border-hp-purple focus:outline-none focus:ring-1 focus:ring-hp-purple"
             />
           </div>
           <div className="relative">
@@ -159,7 +159,7 @@ export default function ClientesPage() {
             <select
               value={selectedSpecialty}
               onChange={(e) => setSelectedSpecialty(e.target.value)}
-              className="appearance-none rounded-lg border border-gray-200 py-2 pl-10 pr-8 text-sm focus:border-dental-blue focus:outline-none focus:ring-1 focus:ring-dental-blue"
+              className="appearance-none rounded-lg border border-gray-200 py-2 pl-10 pr-8 text-sm focus:border-hp-purple focus:outline-none focus:ring-1 focus:ring-hp-purple"
             >
               {specialties.map((s) => (
                 <option key={s} value={s}>
@@ -177,19 +177,19 @@ export default function ClientesPage() {
           <Link
             key={client.id}
             href={`/clientes/${client.id}`}
-            className="card group cursor-pointer transition-all hover:border-dental-blue-200 hover:shadow-md"
+            className="card group cursor-pointer transition-all hover:border-hp-purple-200 hover:shadow-md"
           >
             <div className="flex items-start gap-3">
-              <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-dental-blue-500 to-dental-teal-500 text-sm font-bold text-white">
+              <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-hp-purple-500 to-hp-accent-500 text-sm font-bold text-white">
                 {getInitials(client.name)}
               </div>
               <div className="min-w-0 flex-1">
-                <h3 className="truncate text-sm font-semibold text-gray-900 group-hover:text-dental-blue">
+                <h3 className="truncate text-sm font-semibold text-gray-900 group-hover:text-hp-purple">
                   {client.name}
                 </h3>
                 <p className="text-xs text-gray-500">{client.specialty}</p>
               </div>
-              <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-dental-blue transition-colors" />
+              <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-hp-purple transition-colors" />
             </div>
 
             <div className="mt-4 space-y-2">

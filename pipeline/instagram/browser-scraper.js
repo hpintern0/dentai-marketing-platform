@@ -1,5 +1,5 @@
 /**
- * DentAI Instagram Browser Scraper
+ * HP Odonto Instagram Browser Scraper
  * Uses Playwright to access Instagram like a real browser.
  * Extracts posts, images, videos, captions, and metrics.
  */

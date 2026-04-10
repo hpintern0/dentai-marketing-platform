@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import {
   Users,
@@ -12,6 +12,8 @@ import {
   Play,
   XCircle,
   ArrowUpRight,
+  RefreshCw,
+  Plus,
 } from 'lucide-react';
 
 interface ClientData {
@@ -28,20 +30,20 @@ interface CampaignData {
 }
 
 const statusConfig: Record<string, { icon: typeof CheckCircle2; class: string; label: string }> = {
-  complete: { icon: CheckCircle2, class: 'text-green-600', label: 'Concluido' },
-  generating: { icon: Loader2, class: 'text-dental-blue animate-spin', label: 'Executando' },
+  complete: { icon: CheckCircle2, class: 'text-green-600', label: 'Concluído' },
+  generating: { icon: Loader2, class: 'text-hp-purple animate-spin', label: 'Executando' },
   draft: { icon: Play, class: 'text-gray-400', label: 'Rascunho' },
   failed: { icon: XCircle, class: 'text-red-500', label: 'Falhou' },
-  reviewing: { icon: Clock, class: 'text-yellow-500', label: 'Em revisao' },
+  reviewing: { icon: Clock, class: 'text-yellow-500', label: 'Em revisão' },
   approved: { icon: CheckCircle2, class: 'text-green-500', label: 'Aprovado' },
   published: { icon: CheckCircle2, class: 'text-green-600', label: 'Publicado' },
   scheduled: { icon: Clock, class: 'text-blue-500', label: 'Agendado' },
-  briefing: { icon: Loader2, class: 'text-dental-blue animate-spin', label: 'Briefing' },
+  briefing: { icon: Loader2, class: 'text-hp-purple animate-spin', label: 'Briefing' },
 };
 
 const activityColors: Record<string, string> = {
   success: 'bg-green-500',
-  info: 'bg-dental-blue',
+  info: 'bg-hp-purple',
   warning: 'bg-yellow-500',
   error: 'bg-red-500',
 };
@@ -56,11 +58,11 @@ function getStatusType(status: string): string {
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const minutes = Math.floor(diff / 60000);
-  if (minutes < 60) return `${minutes} min atras`;
+  if (minutes < 60) return `${minutes} min atrás`;
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h atras`;
+  if (hours < 24) return `${hours}h atrás`;
   const days = Math.floor(hours / 24);
-  return `${days}d atras`;
+  return `${days}d atrás`;
 }
 
 export default function DashboardPage() {
@@ -68,35 +70,38 @@ export default function DashboardPage() {
   const [campaigns, setCampaigns] = useState<CampaignData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [clientsRes, campaignsRes] = await Promise.all([
+        fetch('/api/clients'),
+        fetch('/api/campaigns'),
+      ]);
+
+      if (!clientsRes.ok || !campaignsRes.ok) {
+        throw new Error('Erro ao carregar dados');
+      }
+
+      const clientsData = await clientsRes.json();
+      const campaignsJson = await campaignsRes.json();
+      const campaignsData = campaignsJson.data ?? campaignsJson;
+
+      setClients(Array.isArray(clientsData) ? clientsData : []);
+      setCampaigns(Array.isArray(campaignsData) ? campaignsData : []);
+      setLastUpdated(new Date());
+    } catch (err: any) {
+      setError(err.message ?? 'Erro inesperado');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    async function fetchData() {
-      setLoading(true);
-      setError(null);
-      try {
-        const [clientsRes, campaignsRes] = await Promise.all([
-          fetch('/api/clients'),
-          fetch('/api/campaigns'),
-        ]);
-
-        if (!clientsRes.ok || !campaignsRes.ok) {
-          throw new Error('Erro ao carregar dados');
-        }
-
-        const clientsData = await clientsRes.json();
-        const campaignsJson = await campaignsRes.json();
-        const campaignsData = campaignsJson.data ?? campaignsJson;
-
-        setClients(Array.isArray(clientsData) ? clientsData : []);
-        setCampaigns(Array.isArray(campaignsData) ? campaignsData : []);
-      } catch (err: any) {
-        setError(err.message ?? 'Erro inesperado');
-      } finally {
-        setLoading(false);
-      }
-    }
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   const activeCampaigns = campaigns.filter(
     (c) => c.status === 'generating' || c.status === 'reviewing' || c.status === 'approved' || c.status === 'scheduled',
@@ -116,17 +121,17 @@ export default function DashboardPage() {
       value: String(clients.length),
       change: '',
       icon: Users,
-      color: 'bg-dental-blue-100 text-dental-blue-700',
+      color: 'bg-hp-purple-100 text-hp-purple-700',
     },
     {
       label: 'Campanhas Ativas',
       value: String(activeCampaigns.length),
-      change: `${campaigns.filter((c) => c.status === 'generating').length} em execucao`,
+      change: `${campaigns.filter((c) => c.status === 'generating').length} em execução`,
       icon: Megaphone,
-      color: 'bg-dental-teal-100 text-dental-teal-700',
+      color: 'bg-hp-accent-100 text-hp-accent-700',
     },
     {
-      label: 'Aguardando Aprovacao',
+      label: 'Aguardando Aprovação',
       value: String(pendingApprovals.length),
       change: '',
       icon: Clock,
@@ -147,7 +152,7 @@ export default function DashboardPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
           <p className="mt-1 text-sm text-gray-500">
-            Visao geral da plataforma de marketing
+            Visão geral da plataforma de marketing
           </p>
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -193,11 +198,57 @@ export default function DashboardPage() {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Visao geral da plataforma de marketing
-        </p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+            <p className="mt-1 text-sm text-gray-500">
+              Visão geral da plataforma de marketing
+            </p>
+            {lastUpdated && (
+              <p className="mt-0.5 text-xs text-gray-400">
+                Atualizado {timeAgo(lastUpdated.toISOString())}
+              </p>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={fetchData}
+              disabled={loading}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors disabled:opacity-50"
+            >
+              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              Atualizar
+            </button>
+            <Link
+              href="/nova-campanha"
+              className="btn-primary gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Nova Campanha
+            </Link>
+          </div>
+        </div>
       </div>
+
+      {/* Empty state when no campaigns */}
+      {campaigns.length === 0 && (
+        <div className="card py-12 text-center">
+          <Megaphone className="mx-auto h-12 w-12 text-gray-300" />
+          <h2 className="mt-4 text-lg font-semibold text-gray-900">
+            Bem-vindo ao HP AUT!
+          </h2>
+          <p className="mt-2 text-sm text-gray-500 max-w-md mx-auto">
+            Comece criando sua primeira campanha de marketing. Nossa IA vai ajudar a gerar conteúdo personalizado para seus clientes.
+          </p>
+          <Link
+            href="/nova-campanha"
+            className="btn-primary mt-6 inline-flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Criar Primeira Campanha
+          </Link>
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -228,7 +279,7 @@ export default function DashboardPage() {
             <h2 className="text-lg font-semibold text-gray-900">
               Status do Pipeline
             </h2>
-            <Link href="/campanhas" className="text-sm font-medium text-dental-blue hover:text-dental-blue-700">
+            <Link href="/campanhas" className="text-sm font-medium text-hp-purple hover:text-hp-purple-700">
               Ver todos
             </Link>
           </div>
@@ -269,14 +320,14 @@ export default function DashboardPage() {
         <div className="card">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900">
-              Aguardando Aprovacao
+              Aguardando Aprovação
             </h2>
             <span className="badge-warning">{pendingApprovals.length} pendentes</span>
           </div>
           <div className="space-y-3">
             {pendingApprovals.length === 0 ? (
               <p className="py-6 text-center text-sm text-gray-500">
-                Nenhuma campanha aguardando aprovacao.
+                Nenhuma campanha aguardando aprovação.
               </p>
             ) : (
               pendingApprovals.slice(0, 5).map((item) => (
@@ -317,9 +368,9 @@ export default function DashboardPage() {
           </h2>
           <Link
             href="/campanhas"
-            className="flex items-center gap-1 text-sm font-medium text-dental-blue hover:text-dental-blue-700"
+            className="flex items-center gap-1 text-sm font-medium text-hp-purple hover:text-hp-purple-700"
           >
-            Ver historico <ArrowUpRight className="h-3.5 w-3.5" />
+            Ver histórico <ArrowUpRight className="h-3.5 w-3.5" />
           </Link>
         </div>
         <div className="space-y-4">

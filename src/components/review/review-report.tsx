@@ -43,9 +43,9 @@ const severityStyles: Record<IssueSeverity, string> = {
 
 const severityLabels: Record<IssueSeverity, string> = {
   low: 'Baixa',
-  medium: 'Media',
+  medium: 'Média',
   high: 'Alta',
-  critical: 'Critica',
+  critical: 'Crítica',
 };
 
 function ScoreDisplay({ score, maxScore }: { score: number; maxScore: number }) {
@@ -94,7 +94,7 @@ export function ReviewReport({ rounds, className }: ReviewReportProps) {
                     </h4>
                     <Badge variant={piece.status as BadgeVariant}>
                       {piece.status === 'revisao_humana'
-                        ? 'Revisao humana'
+                        ? 'Revisão humana'
                         : piece.status}
                     </Badge>
                   </div>

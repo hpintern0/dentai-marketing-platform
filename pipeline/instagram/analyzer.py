@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-DentAI Instagram Profile Analyzer
+HP Odonto Instagram Profile Analyzer
 Uses Claude Vision to analyze images and Whisper to transcribe videos.
 Generates comprehensive profile intelligence.
 """

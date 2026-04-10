@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-DentAI Video Downloader + Transcriber
+HP Odonto Video Downloader + Transcriber
 Downloads Instagram reels via yt-dlp and transcribes with Whisper.
 """
 

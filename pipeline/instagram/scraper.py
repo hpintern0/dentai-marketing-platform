@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-DentAI Instagram Profile Scraper
+HP Odonto Instagram Profile Scraper
 Scrapes public Instagram profiles using Instaloader.
 Downloads posts, reels, captions, and metadata.
 """

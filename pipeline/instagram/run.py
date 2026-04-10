@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-DentAI Instagram Intelligence Pipeline
+HP Odonto Instagram Intelligence Pipeline
 Scrape + Analyze in one command.
 
 Usage:
@@ -20,7 +20,7 @@ from analyzer import analyze_profile
 
 
 def main():
-    parser = argparse.ArgumentParser(description='DentAI Instagram Intelligence')
+    parser = argparse.ArgumentParser(description='HP Odonto Instagram Intelligence')
     parser.add_argument('username', help='Instagram username (with or without @)')
     parser.add_argument('--max-posts', type=int, default=12, help='Max posts to scrape (default: 12)')
     parser.add_argument('--output', help='Output directory')
@@ -34,7 +34,7 @@ def main():
     )
 
     print(f"{'='*60}")
-    print(f"  DentAI Instagram Intelligence")
+    print(f"  HP Odonto Instagram Intelligence")
     print(f"  Profile: @{username}")
     print(f"  Output: {output_dir}")
     print(f"{'='*60}\n")

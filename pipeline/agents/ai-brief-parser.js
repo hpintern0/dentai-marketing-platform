@@ -4,7 +4,7 @@ const path = require('path');
 async function parseBrief(message, clientProfile, campaignHistory = []) {
   const { generateJSON } = require('../../src/lib/ai-cjs');
 
-  const systemPrompt = `Você é o Brief Parser Agent do DentAI Marketing Platform. Sua função é interpretar pedidos em linguagem natural para criação de campanhas de marketing odontológico e convertê-los em payloads estruturados.
+  const systemPrompt = `Você é o Brief Parser Agent do HP Odonto Marketing Platform. Sua função é interpretar pedidos em linguagem natural para criação de campanhas de marketing odontológico e convertê-los em payloads estruturados.
 
 PERFIL DO CLIENTE:
 ${JSON.stringify(clientProfile, null, 2)}

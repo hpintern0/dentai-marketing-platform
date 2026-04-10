@@ -45,7 +45,7 @@ const STATUS_CONFIG: Record<
     classes: 'bg-blue-100 text-blue-700 animate-pulse',
   },
   reviewing: {
-    label: 'Em Revisao',
+    label: 'Em Revisão',
     classes: 'bg-yellow-100 text-yellow-700',
   },
   approved: {
@@ -58,7 +58,7 @@ const STATUS_CONFIG: Record<
   },
   published: {
     label: 'Publicado',
-    classes: 'bg-dental-teal-100 text-dental-teal-700',
+    classes: 'bg-hp-accent-100 text-hp-accent-700',
   },
   failed: {
     label: 'Falhou',
@@ -83,7 +83,7 @@ function StatusBadge({ status }: { status: CampaignStatus }) {
 
 const FORMAT_LABELS: Record<string, string> = {
   carousel: 'Carrossel',
-  feed_static: 'Feed Estatico',
+  feed_static: 'Feed Estático',
   reels: 'Reels',
   stories: 'Stories',
   copy_only: 'Apenas Copy',
@@ -104,7 +104,7 @@ const STATUS_OPTIONS: { value: string; label: string }[] = [
   { value: 'draft', label: 'Rascunho' },
   { value: 'briefing', label: 'Briefing' },
   { value: 'generating', label: 'Gerando' },
-  { value: 'reviewing', label: 'Em Revisao' },
+  { value: 'reviewing', label: 'Em Revisão' },
   { value: 'approved', label: 'Aprovado' },
   { value: 'scheduled', label: 'Agendado' },
   { value: 'published', label: 'Publicado' },
@@ -228,7 +228,7 @@ export default function CampanhasPage() {
               placeholder="Buscar por nome ou cliente..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-lg border border-gray-200 py-2 pl-10 pr-4 text-sm focus:border-dental-blue focus:outline-none focus:ring-1 focus:ring-dental-blue"
+              className="w-full rounded-lg border border-gray-200 py-2 pl-10 pr-4 text-sm focus:border-hp-purple focus:outline-none focus:ring-1 focus:ring-hp-purple"
             />
           </div>
 
@@ -238,7 +238,7 @@ export default function CampanhasPage() {
             <select
               value={clientFilter}
               onChange={(e) => setClientFilter(e.target.value)}
-              className="w-full appearance-none rounded-lg border border-gray-200 py-2 pl-10 pr-8 text-sm focus:border-dental-blue focus:outline-none focus:ring-1 focus:ring-dental-blue"
+              className="w-full appearance-none rounded-lg border border-gray-200 py-2 pl-10 pr-8 text-sm focus:border-hp-purple focus:outline-none focus:ring-1 focus:ring-hp-purple"
             >
               <option value="">Todos os clientes</option>
               {clients.map((c) => (
@@ -255,7 +255,7 @@ export default function CampanhasPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full appearance-none rounded-lg border border-gray-200 py-2 pl-10 pr-8 text-sm focus:border-dental-blue focus:outline-none focus:ring-1 focus:ring-dental-blue"
+              className="w-full appearance-none rounded-lg border border-gray-200 py-2 pl-10 pr-8 text-sm focus:border-hp-purple focus:outline-none focus:ring-1 focus:ring-hp-purple"
             >
               {STATUS_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -273,17 +273,17 @@ export default function CampanhasPage() {
                 type="date"
                 value={dateFrom}
                 onChange={(e) => setDateFrom(e.target.value)}
-                className="rounded-lg border border-gray-200 py-2 pl-10 pr-3 text-sm focus:border-dental-blue focus:outline-none focus:ring-1 focus:ring-dental-blue"
+                className="rounded-lg border border-gray-200 py-2 pl-10 pr-3 text-sm focus:border-hp-purple focus:outline-none focus:ring-1 focus:ring-hp-purple"
               />
             </div>
-            <span className="text-xs text-gray-400">ate</span>
+            <span className="text-xs text-gray-400">até</span>
             <div className="relative">
               <Calendar className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <input
                 type="date"
                 value={dateTo}
                 onChange={(e) => setDateTo(e.target.value)}
-                className="rounded-lg border border-gray-200 py-2 pl-10 pr-3 text-sm focus:border-dental-blue focus:outline-none focus:ring-1 focus:ring-dental-blue"
+                className="rounded-lg border border-gray-200 py-2 pl-10 pr-3 text-sm focus:border-hp-purple focus:outline-none focus:ring-1 focus:ring-hp-purple"
               />
             </div>
           </div>
@@ -293,7 +293,7 @@ export default function CampanhasPage() {
       {/* Table */}
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-8 w-8 animate-spin text-dental-blue" />
+          <Loader2 className="h-8 w-8 animate-spin text-hp-purple" />
         </div>
       ) : filtered.length === 0 ? (
         <div className="py-16 text-center">
@@ -317,7 +317,7 @@ export default function CampanhasPage() {
                 <TableHead>Status</TableHead>
                 <TableHead>Formato</TableHead>
                 <TableHead>Criada em</TableHead>
-                <TableHead className="text-right">Acoes</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -326,7 +326,7 @@ export default function CampanhasPage() {
                   <TableCell>
                     <Link
                       href={`/campanhas/${campaign.id}`}
-                      className="font-medium text-gray-900 hover:text-dental-blue transition-colors"
+                      className="font-medium text-gray-900 hover:text-hp-purple transition-colors"
                     >
                       {campaign.name}
                     </Link>
