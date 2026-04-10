@@ -18,6 +18,9 @@ RUN npm ci --production=false
 
 COPY . .
 
+# Cache bust — change this value to force rebuild
+ARG CACHEBUST=2
+
 # Real Supabase values baked in at build time
 ENV NEXT_PUBLIC_SUPABASE_URL=https://zmtjlpcgfaczbrqwhejk.supabase.co
 ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptdGpscGNnZmFjemJycXdoZWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MjAxNjUsImV4cCI6MjA5MTM5NjE2NX0.fmr8gu6ywI98jkB9fIBla4ApQ48Mh8W2fgzfw53Lef8
