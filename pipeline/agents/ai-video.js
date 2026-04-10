@@ -80,7 +80,7 @@ Nunca garantir resultados. Linguagem do paciente.`,
 
   // Try to render with Remotion
   try {
-    const { renderVideo } = require('../../remotion/render');
+    const { renderVideo } = eval("require")('../../remotion/render');
     await renderVideo(
       path.join(outputDir, 'video_concept.json'),
       path.join(outputDir, 'ad.mp4'),

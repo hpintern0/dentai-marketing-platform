@@ -84,7 +84,7 @@ REGRAS:
 
     // Playwright render
     try {
-      const { chromium } = require('playwright');
+      const { chromium } = eval("require")('playwright');
       const browser = await chromium.launch({ headless: true, executablePath: process.env.CHROMIUM_PATH || undefined });
       const page = await browser.newPage();
       await page.setViewportSize({ width: 1080, height: 1080 });

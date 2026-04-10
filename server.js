@@ -38,18 +38,27 @@ app.prepare().then(() => {
     });
 
     socket.on('pipeline:retry', async (data) => {
-      console.log(`[Socket.IO] Retry requested: ${data.agent_name} for campaign ${data.campaign_id}`);
+      console.log(`[Socket.IO] Retry: ${data.agent_name} for ${data.campaign_id}`);
       try {
-        const { enqueueJob } = require('./pipeline/queue');
-        await enqueueJob(data.agent_name, {
-          task_name: data.task_name || `retry_${data.campaign_id}_${Date.now()}`,
-          campaign_id: data.campaign_id,
-          ...(data.payload || {}),
-        });
-        socket.emit('pipeline:retry:ack', { status: 'queued', agent_name: data.agent_name });
+        const handlers = require('./pipeline/agents/index');
+        const handler = handlers[data.agent_name];
+        if (handler) {
+          const job = {
+            data: {
+              ...data,
+              ...(data.payload || {}),
+              task_name: data.task_name || data.campaign_id,
+            },
+            name: data.agent_name,
+          };
+          handler(job).catch(console.error);
+          socket.emit('pipeline:retry:ack', { success: true, status: 'running', agent_name: data.agent_name });
+        } else {
+          socket.emit('pipeline:retry:ack', { success: false, error: `No handler for ${data.agent_name}` });
+        }
       } catch (err) {
-        console.error('[Socket.IO] Failed to queue retry job:', err.message);
-        socket.emit('pipeline:retry:ack', { status: 'error', error: err.message });
+        console.error('[Socket.IO] Retry failed:', err.message);
+        socket.emit('pipeline:retry:ack', { success: false, error: err.message });
       }
     });
 

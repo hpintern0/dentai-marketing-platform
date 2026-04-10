@@ -19,6 +19,17 @@ const nextConfig = {
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptdGpscGNnZmFjemJycXdoZWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MjAxNjUsImV4cCI6MjA5MTM5NjE2NX0.fmr8gu6ywI98jkB9fIBla4ApQ48Mh8W2fgzfw53Lef8",
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || "https://dentai-marketing-platform-production.up.railway.app",
   },
+  serverExternalPackages: [
+    'playwright',
+    'remotion',
+    '@remotion/renderer',
+    '@remotion/bundler',
+    '@remotion/cli',
+    '@anthropic-ai/sdk',
+    '@tavily/core',
+    'bullmq',
+    'ioredis',
+  ],
 };
 
 module.exports = nextConfig;

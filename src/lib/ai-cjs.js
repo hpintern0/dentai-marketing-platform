@@ -5,7 +5,8 @@ let Anthropic;
 
 function getAI() {
   if (!Anthropic) {
-    Anthropic = require('@anthropic-ai/sdk').default || require('@anthropic-ai/sdk');
+    const mod = eval("require")('@anthropic-ai/sdk');
+    Anthropic = mod.default || mod;
   }
   return new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 }

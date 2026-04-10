@@ -82,7 +82,7 @@ Use um design clean, moderno, profissional. Cores odontológicas (azuis, brancos
 
   // Step 4: Render with Playwright (if available)
   try {
-    const { chromium } = require('playwright');
+    const { chromium } = eval("require")('playwright');
     const browser = await chromium.launch({
       headless: true,
       executablePath: process.env.CHROMIUM_PATH || undefined,

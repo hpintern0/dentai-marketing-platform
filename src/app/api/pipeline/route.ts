@@ -68,25 +68,43 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: updateError.message }, { status: 500 });
     }
 
-    // Enqueue pipeline jobs to BullMQ
-    try {
-      const { enqueuePipeline } = require('@/../pipeline/queue');
-      await enqueuePipeline({
-        task_name: `campaign_${campaign_id}_${Date.now()}`,
-        client_id: campaign.client_id,
-        campaign_id,
-        steps,
-        ...options,
-      });
-    } catch (enqueueErr: any) {
-      console.error('[Pipeline API] Failed to enqueue pipeline:', enqueueErr?.message);
-      // Update campaign status back to draft on queue failure
-      await supabase
-        .from('campaigns')
-        .update({ status: 'draft', updated_at: new Date().toISOString() })
-        .eq('id', campaign_id);
-      return NextResponse.json({ error: 'Failed to enqueue pipeline jobs' }, { status: 500 });
-    }
+    // Start pipeline in background (don't await) — in-process runner, no Redis needed
+    const { runPipeline } = eval("require")('../../../../pipeline/runner');
+    const pipelinePayload = {
+      task_name: `campaign_${campaign_id}_${Date.now()}`,
+      client_id: campaign.client_id,
+      campaign_id,
+      steps,
+      ...options,
+    };
+
+    // Fire and forget — pipeline runs in background
+    runPipeline(pipelinePayload).then(async (result: any) => {
+      // Update campaign status when done
+      try {
+        const supabaseUpdate = createServerClient();
+        await supabaseUpdate.from('campaigns').update({
+          status: 'reviewing',
+          pipeline_status: {
+            agents: result.results,
+            overall_progress: 100,
+            current_phase: 'complete',
+          },
+          updated_at: new Date().toISOString(),
+        }).eq('id', campaign_id);
+      } catch (err) {
+        console.error('[Pipeline] Failed to update campaign status:', err);
+      }
+    }).catch(async (err: any) => {
+      console.error('[Pipeline] Pipeline failed:', err?.message);
+      try {
+        const supabaseUpdate = createServerClient();
+        await supabaseUpdate.from('campaigns').update({
+          status: 'failed',
+          updated_at: new Date().toISOString(),
+        }).eq('id', campaign_id);
+      } catch {}
+    });
 
     return NextResponse.json({
       message: 'Pipeline started',

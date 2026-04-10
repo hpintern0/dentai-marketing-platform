@@ -7,8 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "pipeline:run": "node pipeline/orchestrator.js",
-    "pipeline:run:payload": "node pipeline/orchestrator.js --payload",
+    "pipeline:run": "node pipeline/runner.js",
+    "pipeline:run:payload": "node pipeline/runner.js",
     "pipeline:worker": "node pipeline/worker.js"
   },
   "dependencies": {

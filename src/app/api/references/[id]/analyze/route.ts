@@ -36,18 +36,30 @@ export async function POST(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: updateError.message }, { status: 500 });
     }
 
-    // Enqueue analysis job to BullMQ
-    try {
-      const { enqueueJob } = require('@/../pipeline/queue');
-      await enqueueJob('dental_research_agent', {
-        task_name: `analyze_ref_${id}_${Date.now()}`,
+    // Run analysis in background — in-process, no Redis needed
+    const handlers = eval("require")('../../../../../pipeline/agents/index');
+    const job = {
+      data: {
+        task_name: `ref_${id}`,
+        mode: 'reference_analysis',
         reference_id: id,
         instagram_handle: reference.instagram_handle,
-        mode: 'reference_analysis',
-      });
-    } catch (enqueueErr: any) {
-      console.error('[Analyze API] Failed to enqueue analysis job:', enqueueErr?.message);
-    }
+      },
+      name: 'dental_research_agent',
+    };
+    handlers.dental_research_agent(job).then(async () => {
+      const supabaseUpdate = createServerClient();
+      await supabaseUpdate.from('reference_profiles').update({
+        analysis_status: 'analisado',
+        last_analyzed_at: new Date().toISOString(),
+      }).eq('id', id);
+    }).catch(async (err: any) => {
+      console.error('[Analyze API] Analysis failed:', err?.message);
+      const supabaseUpdate = createServerClient();
+      await supabaseUpdate.from('reference_profiles').update({
+        analysis_status: 'erro',
+      }).eq('id', id);
+    });
 
     return NextResponse.json({
       message: 'Analysis job queued',

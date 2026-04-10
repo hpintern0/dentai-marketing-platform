@@ -1,4 +1,14 @@
-const { Queue, FlowProducer } = require('bullmq');
+// This module is optional — the in-process runner (pipeline/runner.js)
+// doesn't need Redis. Only used if BullMQ worker mode is enabled.
+
+let Queue, FlowProducer;
+try {
+  ({ Queue, FlowProducer } = require('bullmq'));
+} catch (err) {
+  console.warn('[queue.js] BullMQ not available — use pipeline/runner.js instead');
+  Queue = null;
+  FlowProducer = null;
+}
 
 function getConnection() {
   const url = process.env.UPSTASH_REDIS_URL || 'redis://localhost:6379';
@@ -14,6 +24,9 @@ const QUEUE_NAME = 'dental-content-pipeline';
 
 let _queue = null;
 function getQueue() {
+  if (!Queue) {
+    throw new Error('BullMQ is not available. Use pipeline/runner.js for in-process execution.');
+  }
   if (!_queue) {
     _queue = new Queue(QUEUE_NAME, { connection: getConnection() });
   }

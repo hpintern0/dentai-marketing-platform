@@ -4,7 +4,7 @@ let browser = null;
 
 async function initBrowser() {
   if (!browser) {
-    const { chromium } = require('playwright');
+    const { chromium } = eval("require")('playwright');
     browser = await chromium.launch({
       headless: true,
       executablePath: process.env.CHROMIUM_PATH || undefined,
