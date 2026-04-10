@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     const path = eval("require")('path');
     const briefParserPath = path.join(process.cwd(), 'pipeline', 'agents', 'ai-brief-parser');
     const { parseBrief } = eval("require")(briefParserPath);
-    const result = await parseBrief(message, client, recentCampaigns || []);
+    const result = await parseBrief(message, client, recentCampaigns || [], history || []);
 
     // Save chat message
     await supabase.from('chat_messages').insert([

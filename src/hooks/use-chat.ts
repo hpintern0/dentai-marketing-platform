@@ -62,7 +62,7 @@ export function useChat(clientId: string | null) {
           client_id: clientId,
           message: content,
           campaign_id: campaignId,
-          history: messages.map(m => ({ role: m.role, content: m.content })),
+          history: [...messages, userMessage].map(m => ({ role: m.role, content: m.content })),
         }),
       });
 
