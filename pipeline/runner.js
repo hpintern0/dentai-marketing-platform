@@ -200,6 +200,34 @@ async function saveOutputsToSupabase(payload, outputDir) {
     }
   }
 
+  // Upload videos
+  const videoDir = path.join(outputDir, 'video');
+  if (fs.existsSync(videoDir)) {
+    const videos = fs.readdirSync(videoDir).filter(f => f.endsWith('.mp4') || f.endsWith('.webm'));
+    for (const vid of videos) {
+      const filePath = path.join(videoDir, vid);
+      const storagePath = `${clientId}/${campaignId}/video/${vid}`;
+      const contentType = vid.endsWith('.mp4') ? 'video/mp4' : 'video/webm';
+
+      const fileBuffer = fs.readFileSync(filePath);
+      await supabase.storage.from('dental-campaigns').upload(storagePath, fileBuffer, {
+        contentType, upsert: true,
+      });
+
+      const { data: urlData } = supabase.storage.from('dental-campaigns').getPublicUrl(storagePath);
+
+      pieces.push({
+        campaign_id: campaignId,
+        piece_type: 'video',
+        piece_index: 0,
+        content: { title: vid.replace(/\.(mp4|webm)$/, ''), type: contentType },
+        media_url: urlData.publicUrl,
+        approval_status: 'pending',
+      });
+      console.log(`[Pipeline] Uploaded video: ${vid}`);
+    }
+  }
+
   // Save copy pieces
   const copyDir = path.join(outputDir, 'copy');
   if (fs.existsSync(copyDir)) {

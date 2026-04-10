@@ -605,10 +605,45 @@ export default function CampanhaDetailPage() {
       {/* Video Tab */}
       {activeTab === 'video' && (
         <div className="card">
-          <div className="py-12 text-center">
-            <Video className="mx-auto h-8 w-8 text-gray-300 mb-3" />
-            <p className="text-sm text-gray-500">Nenhum vídeo gerado nesta campanha.</p>
-          </div>
+          {(() => {
+            const videos = (campaign.campaign_pieces || []).filter((p: any) => p.piece_type === 'video');
+            if (videos.length === 0) {
+              return (
+                <div className="py-12 text-center">
+                  <Video className="mx-auto h-8 w-8 text-gray-300 mb-3" />
+                  <p className="text-sm text-gray-500">
+                    {campaign.status === 'generating' ? 'Gerando vídeo...' : 'Nenhum vídeo gerado nesta campanha.'}
+                  </p>
+                </div>
+              );
+            }
+            return (
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900">Vídeos ({videos.length})</h3>
+                {videos.map((v: any) => (
+                  <div key={v.id} className="rounded-xl border border-gray-200 overflow-hidden">
+                    <video
+                      src={v.media_url}
+                      controls
+                      className="w-full max-h-[600px] bg-black"
+                      poster=""
+                    />
+                    <div className="p-3 flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-700">{v.content?.title || 'Vídeo'}</span>
+                      <a
+                        href={v.media_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-medium text-hp-purple hover:text-hp-purple-700"
+                      >
+                        Download
+                      </a>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
         </div>
       )}
     </div>

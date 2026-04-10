@@ -78,21 +78,26 @@ Nunca garantir resultados. Linguagem do paciente.`,
   fs.writeFileSync(path.join(outputDir, 'video_concept.json'), JSON.stringify(videoConcept, null, 2));
   fs.writeFileSync(path.join(outputDir, 'scenes.json'), JSON.stringify(videoConcept.props?.scenes || [], null, 2));
 
-  // Try to render with Remotion
+  // Render MP4 via Playwright screen recording
   try {
-    const { renderVideo } = eval("require")('../../remotion/render');
-    await renderVideo(
+    const { renderVideoFromScenes } = require('./video-renderer');
+    await renderVideoFromScenes(
       path.join(outputDir, 'video_concept.json'),
       path.join(outputDir, 'ad.mp4'),
-      'AdVideo'
+      {
+        procedure: procedure_focus,
+        clientName: job.data.client_name || '',
+        primaryColor: '#1A2744',
+        accentColor: '#C9A84C',
+      }
     );
-    console.log(`[Video Ad] MP4 rendered via Remotion`);
+    console.log(`[Video Ad] MP4 rendered via Playwright`);
   } catch (err) {
-    console.warn(`[Video Ad] Remotion not available: ${err.message}. Scene JSON saved.`);
+    console.warn(`[Video Ad] Video rendering failed: ${err.message}. Scene JSON saved.`);
   }
 
   console.log(`[Video Ad] Complete. Outputs saved to ${outputDir}`);
-  return { status: 'complete', outputs: ['video_concept.json', 'scenes.json'] };
+  return { status: 'complete', outputs: ['video_concept.json', 'scenes.json', 'ad.mp4'] };
 }
 
 module.exports = { runVideoAd };
