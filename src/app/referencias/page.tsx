@@ -17,6 +17,15 @@ import {
   Target,
   Loader2,
   AlertCircle,
+  User,
+  Eye,
+  Zap,
+  ThumbsUp,
+  ThumbsDown,
+  Lightbulb,
+  CheckCircle,
+  Video,
+  FileText,
 } from 'lucide-react';
 
 interface ReferenceProfile {
@@ -29,6 +38,15 @@ interface ReferenceProfile {
   analysis_status: string;
   last_analyzed_at?: string;
   insights?: {
+    profile_summary?: string;
+    specialty_focus?: string;
+    target_audience?: string;
+    tone_of_voice?: string;
+    content_strategy?: {
+      primary_content_types?: string[];
+      posting_frequency?: string;
+      content_pillars?: string[];
+    };
     top_formats?: string[];
     recurring_themes?: string[];
     high_performance_hooks?: string[];
@@ -37,6 +55,11 @@ interface ReferenceProfile {
     hashtag_usage?: string[];
     cta_patterns?: string[];
     qualitative_notes?: string;
+    strengths?: string[];
+    weaknesses?: string[];
+    opportunities?: string[];
+    recommendations?: string[];
+    video_strategy?: string | { [key: string]: any };
   };
   clients?: { id: string; name: string };
 }
@@ -45,6 +68,7 @@ const statusBadge: Record<string, { label: string; class: string }> = {
   analisado: { label: 'Analisado', class: 'badge-success' },
   pendente: { label: 'Pendente', class: 'badge-neutral' },
   processing: { label: 'Analisando...', class: 'badge-info' },
+  analisando: { label: 'Analisando...', class: 'badge-info' },
   erro: { label: 'Erro', class: 'badge-error' },
 };
 
@@ -120,7 +144,7 @@ export default function ReferenciasPage() {
       await fetch(`/api/references/${id}/analyze`, { method: 'POST' });
       // Optimistically update status
       setReferences((prev) =>
-        prev.map((r) => (r.id === id ? { ...r, analysis_status: 'processing' } : r)),
+        prev.map((r) => (r.id === id ? { ...r, analysis_status: 'analisando' } : r)),
       );
     } catch {
       // silently fail
@@ -323,10 +347,10 @@ export default function ReferenciasPage() {
                                   e.stopPropagation();
                                   handleAnalyze(profile.id);
                                 }}
-                                disabled={profile.analysis_status === 'processing'}
+                                disabled={profile.analysis_status === 'processing' || profile.analysis_status === 'analisando'}
                                 className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 transition-colors disabled:opacity-50"
                               >
-                                <RefreshCw className={`h-3.5 w-3.5 inline mr-1 ${profile.analysis_status === 'processing' ? 'animate-spin' : ''}`} />
+                                <RefreshCw className={`h-3.5 w-3.5 inline mr-1 ${(profile.analysis_status === 'processing' || profile.analysis_status === 'analisando') ? 'animate-spin' : ''}`} />
                                 Analisar agora
                               </button>
                               {isExpanded ? (
@@ -340,69 +364,114 @@ export default function ReferenciasPage() {
 
                         {/* Expanded Insights Panel */}
                         {isExpanded && profile.insights && (
-                          <div className="border-t border-gray-100 bg-gradient-to-b from-dental-blue-50/30 to-white px-6 py-5">
-                            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                          <div className="border-t border-gray-100 bg-gradient-to-b from-dental-blue-50/30 to-white px-6 py-5 space-y-6">
+                            {/* Summary Section */}
+                            {(profile.insights.profile_summary || profile.insights.specialty_focus || profile.insights.target_audience || profile.insights.tone_of_voice) && (
+                              <div>
+                                <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-3">Resumo do Perfil</h3>
+                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                  {profile.insights.profile_summary && (
+                                    <InsightText icon={User} title="Resumo" text={profile.insights.profile_summary} className="md:col-span-2" />
+                                  )}
+                                  {profile.insights.specialty_focus && (
+                                    <InsightText icon={Target} title="Foco de Especialidade" text={profile.insights.specialty_focus} />
+                                  )}
+                                  {profile.insights.target_audience && (
+                                    <InsightText icon={Eye} title="Publico-Alvo" text={profile.insights.target_audience} />
+                                  )}
+                                  {(profile.insights.tone_of_voice || profile.insights.predominant_tone) && (
+                                    <InsightText icon={Palette} title="Tom de Voz" text={profile.insights.tone_of_voice || profile.insights.predominant_tone || ''} />
+                                  )}
+                                  {profile.insights.posting_frequency && (
+                                    <InsightText icon={Calendar} title="Frequencia" text={
+                                      profile.insights.content_strategy?.posting_frequency || profile.insights.posting_frequency || ''
+                                    } />
+                                  )}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Content Strategy Section */}
+                            {profile.insights.content_strategy && (
+                              <div>
+                                <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-3">Estrategia de Conteudo</h3>
+                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                                  {profile.insights.content_strategy.primary_content_types && profile.insights.content_strategy.primary_content_types.length > 0 && (
+                                    <InsightCard icon={FileText} title="Tipos de Conteudo" items={profile.insights.content_strategy.primary_content_types} />
+                                  )}
+                                  {profile.insights.content_strategy.content_pillars && profile.insights.content_strategy.content_pillars.length > 0 && (
+                                    <InsightCard icon={Zap} title="Pilares de Conteudo" items={profile.insights.content_strategy.content_pillars} />
+                                  )}
+                                  {profile.insights.content_strategy.posting_frequency && (
+                                    <InsightText icon={Calendar} title="Frequencia de Postagem" text={profile.insights.content_strategy.posting_frequency} />
+                                  )}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Formats & Themes */}
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                               {profile.insights.top_formats && profile.insights.top_formats.length > 0 && (
-                                <InsightCard
-                                  icon={Palette}
-                                  title="Top Formatos"
-                                  items={profile.insights.top_formats}
-                                />
+                                <InsightCard icon={Palette} title="Top Formatos" items={profile.insights.top_formats} />
                               )}
                               {profile.insights.recurring_themes && profile.insights.recurring_themes.length > 0 && (
-                                <InsightCard
-                                  icon={TrendingUp}
-                                  title="Temas Recorrentes"
-                                  items={profile.insights.recurring_themes}
-                                />
+                                <InsightCard icon={TrendingUp} title="Temas Recorrentes" items={profile.insights.recurring_themes} />
                               )}
                               {profile.insights.high_performance_hooks && profile.insights.high_performance_hooks.length > 0 && (
-                                <InsightCard
-                                  icon={MessageSquare}
-                                  title="Hooks"
-                                  items={profile.insights.high_performance_hooks}
-                                />
-                              )}
-                              {profile.insights.predominant_tone && (
-                                <div className="rounded-lg border border-gray-200 bg-white p-4">
-                                  <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-900">
-                                    <Palette className="h-4 w-4 text-dental-teal" />
-                                    Tom de Voz
-                                  </div>
-                                  <p className="text-sm text-gray-600">
-                                    {profile.insights.predominant_tone}
-                                  </p>
-                                </div>
-                              )}
-                              {profile.insights.posting_frequency && (
-                                <div className="rounded-lg border border-gray-200 bg-white p-4">
-                                  <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-900">
-                                    <Calendar className="h-4 w-4 text-dental-teal" />
-                                    Frequencia
-                                  </div>
-                                  <p className="text-sm text-gray-600">
-                                    {profile.insights.posting_frequency}
-                                  </p>
-                                </div>
+                                <InsightCard icon={MessageSquare} title="Hooks de Alta Performance" items={profile.insights.high_performance_hooks} />
                               )}
                               {profile.insights.hashtag_usage && profile.insights.hashtag_usage.length > 0 && (
-                                <InsightCard
-                                  icon={Hash}
-                                  title="Hashtags"
-                                  items={profile.insights.hashtag_usage}
-                                />
+                                <InsightCard icon={Hash} title="Hashtags" items={profile.insights.hashtag_usage} />
                               )}
                               {profile.insights.cta_patterns && profile.insights.cta_patterns.length > 0 && (
-                                <InsightCard
-                                  icon={Target}
-                                  title="Padroes de CTA"
-                                  items={profile.insights.cta_patterns}
-                                  className="md:col-span-2 lg:col-span-1"
-                                />
+                                <InsightCard icon={Target} title="Padroes de CTA" items={profile.insights.cta_patterns} />
                               )}
                             </div>
+
+                            {/* SWOT-like Section */}
+                            {(profile.insights.strengths || profile.insights.weaknesses || profile.insights.opportunities || profile.insights.recommendations) && (
+                              <div>
+                                <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-3">Analise Estrategica</h3>
+                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                  {profile.insights.strengths && profile.insights.strengths.length > 0 && (
+                                    <InsightCard icon={ThumbsUp} title="Pontos Fortes" items={profile.insights.strengths} />
+                                  )}
+                                  {profile.insights.weaknesses && profile.insights.weaknesses.length > 0 && (
+                                    <InsightCard icon={ThumbsDown} title="Pontos Fracos" items={profile.insights.weaknesses} />
+                                  )}
+                                  {profile.insights.opportunities && profile.insights.opportunities.length > 0 && (
+                                    <InsightCard icon={Lightbulb} title="Oportunidades" items={profile.insights.opportunities} />
+                                  )}
+                                  {profile.insights.recommendations && profile.insights.recommendations.length > 0 && (
+                                    <InsightCard icon={CheckCircle} title="Recomendacoes" items={profile.insights.recommendations} />
+                                  )}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Video Strategy */}
+                            {profile.insights.video_strategy && (
+                              <div>
+                                <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-3">Estrategia de Video</h3>
+                                {typeof profile.insights.video_strategy === 'string' ? (
+                                  <InsightText icon={Video} title="Video" text={profile.insights.video_strategy} />
+                                ) : (
+                                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                                    {Object.entries(profile.insights.video_strategy).map(([key, value]) => {
+                                      const label = key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                                      if (Array.isArray(value)) {
+                                        return <InsightCard key={key} icon={Video} title={label} items={value.map(String)} />;
+                                      }
+                                      return <InsightText key={key} icon={Video} title={label} text={String(value)} />;
+                                    })}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Qualitative Notes */}
                             {profile.insights.qualitative_notes && (
-                              <div className="mt-4 rounded-lg border border-gray-200 bg-white p-4">
+                              <div className="rounded-lg border border-gray-200 bg-white p-4">
                                 <p className="text-sm font-semibold text-gray-900 mb-2">Notas Qualitativas</p>
                                 <p className="text-sm text-gray-600">{profile.insights.qualitative_notes}</p>
                               </div>
@@ -413,7 +482,7 @@ export default function ReferenciasPage() {
                         {isExpanded && !profile.insights && (
                           <div className="border-t border-gray-100 px-6 py-8 text-center">
                             <p className="text-sm text-gray-500">
-                              {profile.analysis_status === 'processing'
+                              {(profile.analysis_status === 'processing' || profile.analysis_status === 'analisando')
                                 ? 'Analise em andamento...'
                                 : 'Nenhuma analise disponivel. Clique em "Analisar agora" para iniciar.'}
                             </p>
@@ -556,6 +625,28 @@ function InsightCard({
           </li>
         ))}
       </ul>
+    </div>
+  );
+}
+
+function InsightText({
+  icon: Icon,
+  title,
+  text,
+  className = '',
+}: {
+  icon: typeof Hash;
+  title: string;
+  text: string;
+  className?: string;
+}) {
+  return (
+    <div className={`rounded-lg border border-gray-200 bg-white p-4 ${className}`}>
+      <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-900">
+        <Icon className="h-4 w-4 text-dental-teal" />
+        {title}
+      </div>
+      <p className="text-sm text-gray-600">{text}</p>
     </div>
   );
 }

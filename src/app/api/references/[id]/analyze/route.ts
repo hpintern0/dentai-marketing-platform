@@ -8,68 +8,58 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const { id } = await context.params;
     const supabase = createServerClient();
 
-    // Verify the reference profile exists
-    const { data: reference, error: fetchError } = await supabase
+    // Get reference profile
+    const { data: reference, error } = await supabase
       .from('reference_profiles')
-      .select('id, instagram_handle, analysis_status')
+      .select('*')
       .eq('id', id)
       .single();
 
-    if (fetchError || !reference) {
-      return NextResponse.json({ error: 'Reference profile not found' }, { status: 404 });
+    if (error || !reference) {
+      return NextResponse.json({ error: 'Reference not found' }, { status: 404 });
     }
 
-    if (reference.analysis_status === 'processing') {
+    if (reference.analysis_status === 'analisando') {
       return NextResponse.json(
         { error: 'Analysis is already in progress for this reference' },
-        { status: 409 }
+        { status: 409 },
       );
     }
 
-    // Update status to processing
-    const { error: updateError } = await supabase
+    // Set status to analyzing immediately
+    await supabase
       .from('reference_profiles')
-      .update({ analysis_status: 'processing' })
+      .update({ analysis_status: 'analisando' })
       .eq('id', id);
 
-    if (updateError) {
-      return NextResponse.json({ error: updateError.message }, { status: 500 });
-    }
+    // Run analysis in background (don't await)
+    const { analyzeInstagramProfile } = eval("require")('../../../../../pipeline/instagram/analyze-profile');
 
-    // Run analysis in background — in-process, no Redis needed
-    const handlers = eval("require")('../../../../../pipeline/agents/index');
-    const job = {
-      data: {
-        task_name: `ref_${id}`,
-        mode: 'reference_analysis',
-        reference_id: id,
-        instagram_handle: reference.instagram_handle,
-      },
-      name: 'dental_research_agent',
-    };
-    handlers.dental_research_agent(job).then(async () => {
+    analyzeInstagramProfile(reference.instagram_handle).then(async (insights: any) => {
       const supabaseUpdate = createServerClient();
-      await supabaseUpdate.from('reference_profiles').update({
-        analysis_status: 'analisado',
-        last_analyzed_at: new Date().toISOString(),
-      }).eq('id', id);
+      await supabaseUpdate
+        .from('reference_profiles')
+        .update({
+          insights,
+          analysis_status: 'analisado',
+          last_analyzed_at: new Date().toISOString(),
+        })
+        .eq('id', id);
+      console.log(`[Reference] Analysis complete for ${reference.instagram_handle}`);
     }).catch(async (err: any) => {
-      console.error('[Analyze API] Analysis failed:', err?.message);
+      console.error(`[Reference] Analysis failed for ${reference.instagram_handle}:`, err.message);
       const supabaseUpdate = createServerClient();
-      await supabaseUpdate.from('reference_profiles').update({
-        analysis_status: 'erro',
-      }).eq('id', id);
+      await supabaseUpdate
+        .from('reference_profiles')
+        .update({ analysis_status: 'erro' })
+        .eq('id', id);
     });
 
-    return NextResponse.json({
-      message: 'Analysis job queued',
-      data: {
-        reference_id: id,
-        instagram_handle: reference.instagram_handle,
-        status: 'processing',
-      },
-    }, { status: 202 });
-  } catch (err) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json(
+      { status: 'analyzing', message: 'Analise iniciada' },
+      { status: 202 },
+    );
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
