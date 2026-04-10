@@ -12,6 +12,7 @@ import {
   ChevronRight,
   Loader2,
   AlertCircle,
+  Trash2,
 } from 'lucide-react';
 import { ClientFormModal } from '@/components/client/client-form-modal';
 
@@ -44,6 +45,22 @@ export default function ClientesPage() {
   const [search, setSearch] = useState('');
   const [selectedSpecialty, setSelectedSpecialty] = useState('Todas');
   const [showModal, setShowModal] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+  const handleDelete = async (id: string) => {
+    setDeletingId(id);
+    try {
+      const res = await fetch(`/api/clients/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Erro ao apagar');
+      setClients((prev) => prev.filter((c) => c.id !== id));
+    } catch {
+      alert('Erro ao apagar cliente');
+    } finally {
+      setDeletingId(null);
+      setConfirmDeleteId(null);
+    }
+  };
 
   const fetchClients = async () => {
     setLoading(true);
@@ -174,37 +191,70 @@ export default function ClientesPage() {
       {/* Client Grid */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {filtered.map((client) => (
-          <Link
+          <div
             key={client.id}
-            href={`/clientes/${client.id}`}
-            className="card group cursor-pointer transition-all hover:border-hp-purple-200 hover:shadow-md"
+            className="card group relative transition-all hover:border-hp-purple-200 hover:shadow-md"
           >
-            <div className="flex items-start gap-3">
-              <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-hp-purple-500 to-hp-accent-500 text-sm font-bold text-white">
-                {getInitials(client.name)}
-              </div>
-              <div className="min-w-0 flex-1">
-                <h3 className="truncate text-sm font-semibold text-gray-900 group-hover:text-hp-purple">
-                  {client.name}
-                </h3>
-                <p className="text-xs text-gray-500">{client.specialty}</p>
-              </div>
-              <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-hp-purple transition-colors" />
-            </div>
-
-            <div className="mt-4 space-y-2">
-              <div className="flex items-center gap-2 text-xs text-gray-500">
-                <MapPin className="h-3.5 w-3.5" />
-                {client.city}{client.state ? `, ${client.state}` : ''}
-              </div>
-              {client.instagram_handle && (
-                <div className="flex items-center gap-2 text-xs text-gray-500">
-                  <Instagram className="h-3.5 w-3.5" />
-                  {client.instagram_handle}
+            {/* Delete confirmation overlay */}
+            {confirmDeleteId === client.id && (
+              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-xl bg-white/95 backdrop-blur-sm p-4">
+                <p className="text-sm font-medium text-gray-900 mb-1">Apagar este cliente?</p>
+                <p className="text-xs text-gray-500 mb-4 text-center">Todas as campanhas associadas serão removidas.</p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setConfirmDeleteId(null)}
+                    className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={() => handleDelete(client.id)}
+                    disabled={deletingId === client.id}
+                    className="rounded-lg bg-red-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-600 disabled:opacity-50"
+                  >
+                    {deletingId === client.id ? 'Apagando...' : 'Apagar'}
+                  </button>
                 </div>
-              )}
-            </div>
-          </Link>
+              </div>
+            )}
+
+            {/* Delete button */}
+            <button
+              onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(client.id); }}
+              className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50"
+              title="Apagar cliente"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+
+            <Link href={`/clientes/${client.id}`} className="block cursor-pointer">
+              <div className="flex items-start gap-3">
+                <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-hp-purple-500 to-hp-accent-500 text-sm font-bold text-white">
+                  {getInitials(client.name)}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h3 className="truncate text-sm font-semibold text-gray-900 group-hover:text-hp-purple">
+                    {client.name}
+                  </h3>
+                  <p className="text-xs text-gray-500">{client.specialty}</p>
+                </div>
+                <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-hp-purple transition-colors" />
+              </div>
+
+              <div className="mt-4 space-y-2">
+                <div className="flex items-center gap-2 text-xs text-gray-500">
+                  <MapPin className="h-3.5 w-3.5" />
+                  {client.city}{client.state ? `, ${client.state}` : ''}
+                </div>
+                {client.instagram_handle && (
+                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <Instagram className="h-3.5 w-3.5" />
+                    {client.instagram_handle}
+                  </div>
+                )}
+              </div>
+            </Link>
+          </div>
         ))}
       </div>
 
