@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import {
   Search,
   Plus,
@@ -161,8 +162,9 @@ export default function ClientesPage() {
       {/* Client Grid */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {filtered.map((client) => (
-          <div
+          <Link
             key={client.id}
+            href={`/clientes/${client.id}`}
             className="card group cursor-pointer transition-all hover:border-dental-blue-200 hover:shadow-md"
           >
             <div className="flex items-start gap-3">
@@ -192,7 +194,7 @@ export default function ClientesPage() {
                 {client.activeCampaigns} campanha{client.activeCampaigns !== 1 ? 's' : ''} ativa{client.activeCampaigns !== 1 ? 's' : ''}
               </div>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
 

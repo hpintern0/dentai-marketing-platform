@@ -1,105 +1,151 @@
-'use strict';
+// Agent handler registry — maps agent names to real AI implementations
+const { runDentalResearch } = require('./ai-dental-research');
+const { runCopywriter } = require('./ai-copywriter');
+const { runAdCreative } = require('./ai-ad-creative');
+const { runCarousel } = require('./ai-carousel');
+const { runVideoAd } = require('./ai-video');
+const { runReviewLoop } = require('./ai-review-loop');
+const { runDistribution } = require('./ai-distribution');
+const { PipelineLogger } = require('../utils/logger');
 
-const dentalResearch = require('./dental-research');
-const copywriter = require('./copywriter');
-const adCreative = require('./ad-creative');
-const carousel = require('./carousel');
-const videoAd = require('./video-ad');
-const reviewLoop = require('./review-loop');
-const distribution = require('./distribution');
-
-/**
- * Agent Handler Registry
- * Maps agent/job names to their handler functions.
- * Each handler receives a BullMQ job and returns a result object.
- */
-const agentHandlers = {
-  // --- Research phase ---
-  dental_research_agent: dentalResearch.handle,
-  dental_intelligence_agent: async (job) => {
-    // Intelligence agent shares the research interface but focuses on
-    // competitive analysis and market positioning. Stub for now.
-    const fs = require('fs');
-    const path = require('path');
-    const { task_name, procedure_focus } = job.data;
-    const startTime = Date.now();
-    const outputDir = path.resolve(__dirname, '../../outputs', task_name);
-
-    fs.mkdirSync(outputDir, { recursive: true });
-    job.log(`Processing dental_intelligence_agent for ${task_name}...`);
-    job.updateProgress(20);
-
-    const intelligence = {
-      task_name,
-      procedure_focus,
-      market_analysis: {
-        competitors: ['[STUB] Competitor A', '[STUB] Competitor B'],
-        avg_price_range: '$500–$3,000',
-        demand_trend: 'increasing',
-        peak_search_months: ['January', 'May', 'September'],
-      },
-      positioning_recommendations: [
-        'Emphasize technology and comfort',
-        'Highlight financing options',
-        'Use before/after social proof',
-      ],
-      generated_at: new Date().toISOString(),
-    };
-
-    const intelligencePath = path.join(outputDir, 'intelligence_report.json');
-    fs.writeFileSync(intelligencePath, JSON.stringify(intelligence, null, 2), 'utf-8');
-    job.log(`Wrote intelligence report: ${intelligencePath}`);
-    job.updateProgress(100);
-
-    return {
-      status: 'completed',
-      agent: 'dental_intelligence_agent',
-      duration_ms: Date.now() - startTime,
-      outputs: [intelligencePath],
-      notes: 'Stub intelligence report generated.',
-    };
+const handlers = {
+  dental_research_agent: async (job) => {
+    const logger = new PipelineLogger(job.data.task_name, 'dental_research_agent');
+    logger.info('Starting dental research...');
+    try {
+      const result = await runDentalResearch(job);
+      logger.info('Research complete', result);
+      return result;
+    } catch (err) {
+      logger.error('Research failed', { error: err.message });
+      throw err;
+    }
   },
 
-  // --- Creative phase ---
-  ad_creative_designer: adCreative.handle,
-  carousel_agent: carousel.handle,
-  video_ad_specialist: videoAd.handle,
-  copywriter_agent: copywriter.handle,
+  dental_intelligence_agent: async (job) => {
+    const logger = new PipelineLogger(job.data.task_name, 'dental_intelligence_agent');
+    logger.info('Loading dental knowledge base...');
+    // Intelligence agent enriches context by loading knowledge files
+    // This is handled implicitly by the other agents reading knowledge/
+    const fs = require('fs');
+    const path = require('path');
+    const knowledgeDir = path.resolve(__dirname, '../../knowledge');
+    const procedureFile = path.join(knowledgeDir, 'procedimentos',
+      job.data.procedure_focus?.replace(/\s+/g, '_').toLowerCase() + '.md');
 
-  // --- Review phase ---
-  review_orchestrator: reviewLoop.handleReviewOrchestrator,
-  cfo_compliance_reviewer: reviewLoop.handleCfoCompliance,
-  copy_reviewer: reviewLoop.handleCopyReviewer,
-  visual_reviewer: reviewLoop.handleVisualReviewer,
-  dental_expert_reviewer: reviewLoop.handleDentalExpert,
+    let knowledge = 'general dental knowledge';
+    if (fs.existsSync(procedureFile)) {
+      knowledge = fs.readFileSync(procedureFile, 'utf-8');
+      logger.info(`Loaded procedure knowledge: ${procedureFile}`);
+    }
 
-  // --- Consolidation & correction ---
-  issue_consolidator: reviewLoop.handleIssueConsolidator,
-  correction_agent: reviewLoop.handleCorrectionAgent,
+    // Save enriched context for downstream agents
+    const outputDir = path.resolve(__dirname, `../../outputs/${job.data.task_name}`);
+    if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
 
-  // --- Distribution ---
-  distribution_agent: distribution.handle,
+    const enrichment = {
+      procedure_knowledge: knowledge.substring(0, 2000),
+      cfo_rules: fs.existsSync(path.join(knowledgeDir, 'regulatorio/cfo_publicidade.md'))
+        ? fs.readFileSync(path.join(knowledgeDir, 'regulatorio/cfo_publicidade.md'), 'utf-8').substring(0, 2000)
+        : '',
+      emotional_triggers: fs.existsSync(path.join(knowledgeDir, 'comunicacao/gatilhos_emocionais.md'))
+        ? fs.readFileSync(path.join(knowledgeDir, 'comunicacao/gatilhos_emocionais.md'), 'utf-8').substring(0, 2000)
+        : '',
+      patient_pains: fs.existsSync(path.join(knowledgeDir, 'comunicacao/dores_do_paciente.md'))
+        ? fs.readFileSync(path.join(knowledgeDir, 'comunicacao/dores_do_paciente.md'), 'utf-8').substring(0, 2000)
+        : '',
+    };
+
+    fs.writeFileSync(path.join(outputDir, 'dental_intelligence.json'), JSON.stringify(enrichment, null, 2));
+    logger.info('Intelligence enrichment saved');
+    return { status: 'complete', outputs: ['dental_intelligence.json'] };
+  },
+
+  ad_creative_designer: async (job) => {
+    const logger = new PipelineLogger(job.data.task_name, 'ad_creative_designer');
+    logger.info('Starting ad creative design...');
+    try {
+      const result = await runAdCreative(job);
+      logger.info('Ad creative complete', result);
+      return result;
+    } catch (err) {
+      logger.error('Ad creative failed', { error: err.message });
+      throw err;
+    }
+  },
+
+  carousel_agent: async (job) => {
+    const logger = new PipelineLogger(job.data.task_name, 'carousel_agent');
+    logger.info('Starting carousel generation...');
+    try {
+      const result = await runCarousel(job);
+      logger.info('Carousel complete', result);
+      return result;
+    } catch (err) {
+      logger.error('Carousel failed', { error: err.message });
+      throw err;
+    }
+  },
+
+  video_ad_specialist: async (job) => {
+    const logger = new PipelineLogger(job.data.task_name, 'video_ad_specialist');
+    logger.info('Starting video ad generation...');
+    try {
+      const result = await runVideoAd(job);
+      logger.info('Video ad complete', result);
+      return result;
+    } catch (err) {
+      logger.error('Video ad failed', { error: err.message });
+      throw err;
+    }
+  },
+
+  copywriter_agent: async (job) => {
+    const logger = new PipelineLogger(job.data.task_name, 'copywriter_agent');
+    logger.info('Starting copywriting...');
+    try {
+      const result = await runCopywriter(job);
+      logger.info('Copywriting complete', result);
+      return result;
+    } catch (err) {
+      logger.error('Copywriting failed', { error: err.message });
+      throw err;
+    }
+  },
+
+  review_orchestrator: async (job) => {
+    const logger = new PipelineLogger(job.data.task_name, 'review_orchestrator');
+    logger.info('Starting review loop...');
+    try {
+      const result = await runReviewLoop(job);
+      logger.info('Review complete', result);
+      return result;
+    } catch (err) {
+      logger.error('Review failed', { error: err.message });
+      throw err;
+    }
+  },
+
+  // Individual reviewers are handled within review_orchestrator
+  cfo_compliance_reviewer: async (job) => ({ status: 'complete', notes: 'Handled by review_orchestrator' }),
+  copy_reviewer: async (job) => ({ status: 'complete', notes: 'Handled by review_orchestrator' }),
+  visual_reviewer: async (job) => ({ status: 'complete', notes: 'Handled by review_orchestrator' }),
+  dental_expert_reviewer: async (job) => ({ status: 'complete', notes: 'Handled by review_orchestrator' }),
+  issue_consolidator: async (job) => ({ status: 'complete', notes: 'Handled by review_orchestrator' }),
+  correction_agent: async (job) => ({ status: 'complete', notes: 'Handled by review_orchestrator' }),
+
+  distribution_agent: async (job) => {
+    const logger = new PipelineLogger(job.data.task_name, 'distribution_agent');
+    logger.info('Starting distribution...');
+    try {
+      const result = await runDistribution(job);
+      logger.info('Distribution complete', result);
+      return result;
+    } catch (err) {
+      logger.error('Distribution failed', { error: err.message });
+      throw err;
+    }
+  },
 };
 
-/**
- * Get handler for a given agent name.
- * @param {string} agentName
- * @returns {Function|null}
- */
-function getHandler(agentName) {
-  return agentHandlers[agentName] || null;
-}
-
-/**
- * List all registered agent names.
- * @returns {string[]}
- */
-function listAgents() {
-  return Object.keys(agentHandlers);
-}
-
-module.exports = {
-  agentHandlers,
-  getHandler,
-  listAgents,
-};
+module.exports = handlers;
