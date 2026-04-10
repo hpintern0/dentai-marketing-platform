@@ -32,6 +32,7 @@ interface CampaignData {
   pipeline_status?: any;
   clients?: { id: string; name: string; specialty?: string };
   scheduled_posts?: any[];
+  campaign_pieces?: any[];
 }
 
 const tabs = [
@@ -496,29 +497,117 @@ export default function CampanhaDetailPage() {
         </div>
       )}
 
-      {['criativos', 'carrossel', 'video', 'copy'].includes(activeTab) && (
+      {/* Criativos / Carrossel Tab — show actual images */}
+      {(activeTab === 'criativos' || activeTab === 'carrossel') && (
+        <div className="card">
+          {(() => {
+            const slides = (campaign.campaign_pieces || [])
+              .filter((p: any) => p.piece_type === 'carousel_slide' || p.piece_type === 'instagram_ad')
+              .sort((a: any, b: any) => (a.piece_index || 0) - (b.piece_index || 0));
+            if (slides.length === 0) {
+              return (
+                <div className="py-12 text-center">
+                  <Layers className="mx-auto h-8 w-8 text-gray-300 mb-3" />
+                  <p className="text-sm text-gray-500">
+                    {campaign.status === 'generating' ? 'Gerando criativos...' : 'Nenhum criativo gerado ainda.'}
+                  </p>
+                </div>
+              );
+            }
+            return (
+              <div>
+                <h3 className="mb-4 text-lg font-semibold text-gray-900">
+                  {activeTab === 'carrossel' ? 'Slides do Carrossel' : 'Criativos'} ({slides.length})
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {slides.map((piece: any, idx: number) => (
+                    <div key={piece.id} className="group relative overflow-hidden rounded-xl border border-gray-200 shadow-sm">
+                      {piece.media_url ? (
+                        <img
+                          src={piece.media_url}
+                          alt={piece.content?.title || `Slide ${idx + 1}`}
+                          className="w-full aspect-square object-cover"
+                        />
+                      ) : (
+                        <div className="w-full aspect-square bg-gray-100 flex items-center justify-center">
+                          <Image className="h-8 w-8 text-gray-300" />
+                        </div>
+                      )}
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                        <p className="text-sm font-medium text-white">{piece.content?.title || `Slide ${idx + 1}`}</p>
+                        <span className="mt-1 inline-block rounded-full bg-green-500/90 px-2 py-0.5 text-[10px] font-medium text-white">
+                          {piece.approval_status === 'approved' ? 'Aprovado' : piece.approval_status}
+                        </span>
+                      </div>
+                      {piece.media_url && (
+                        <a
+                          href={piece.media_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg bg-white/90 px-2 py-1 text-xs font-medium text-gray-700 shadow hover:bg-white"
+                        >
+                          Abrir
+                        </a>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+      )}
+
+      {/* Copy Tab — show captions */}
+      {activeTab === 'copy' && (
+        <div className="card">
+          {(() => {
+            const copies = (campaign.campaign_pieces || [])
+              .filter((p: any) => p.piece_type === 'instagram_caption' || p.piece_type === 'stories_copy' || p.piece_type === 'whatsapp_cta');
+            if (copies.length === 0) {
+              return (
+                <div className="py-12 text-center">
+                  <Type className="mx-auto h-8 w-8 text-gray-300 mb-3" />
+                  <p className="text-sm text-gray-500">Nenhuma copy gerada ainda.</p>
+                </div>
+              );
+            }
+            return (
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900">Copy ({copies.length})</h3>
+                {copies.map((piece: any) => (
+                  <div key={piece.id} className="rounded-xl border border-gray-200 p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-medium text-gray-500 uppercase">
+                        {piece.piece_type === 'instagram_caption' ? 'Instagram Caption' : piece.piece_type}
+                      </span>
+                      <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-medium text-green-700">
+                        {piece.approval_status === 'approved' ? 'Aprovado' : piece.approval_status}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+                      {piece.content?.text || JSON.stringify(piece.content)}
+                    </p>
+                    <button
+                      onClick={() => { navigator.clipboard.writeText(piece.content?.text || ''); }}
+                      className="mt-3 text-xs text-hp-purple hover:text-hp-purple-700 font-medium"
+                    >
+                      Copiar texto
+                    </button>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
+        </div>
+      )}
+
+      {/* Video Tab */}
+      {activeTab === 'video' && (
         <div className="card">
           <div className="py-12 text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
-              {activeTab === 'criativos' && <Image className="h-8 w-8 text-gray-400" />}
-              {activeTab === 'carrossel' && <Layers className="h-8 w-8 text-gray-400" />}
-              {activeTab === 'video' && <Video className="h-8 w-8 text-gray-400" />}
-              {activeTab === 'copy' && <Type className="h-8 w-8 text-gray-400" />}
-            </div>
-            <p className="text-sm font-medium text-gray-900">
-              {campaign.status === 'generating'
-                ? 'Gerando conteúdo...'
-                : campaign.status === 'draft' || campaign.status === 'briefing'
-                ? 'Aguardando geração...'
-                : 'Conteúdo gerado'}
-            </p>
-            <p className="mt-1 text-xs text-gray-500">
-              {campaign.status === 'generating'
-                ? 'O pipeline está processando esta seção. Aguarde.'
-                : campaign.status === 'draft' || campaign.status === 'briefing'
-                ? 'Inicie o pipeline para gerar o conteúdo desta seção.'
-                : 'Os arquivos gerados estão disponíveis no armazenamento da campanha.'}
-            </p>
+            <Video className="mx-auto h-8 w-8 text-gray-300 mb-3" />
+            <p className="text-sm text-gray-500">Nenhum vídeo gerado nesta campanha.</p>
           </div>
         </div>
       )}
