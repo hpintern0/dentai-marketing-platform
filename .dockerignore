@@ -1,0 +1,7 @@
+node_modules
+.next
+.git
+outputs
+*.md
+.env*
+.DS_Store
