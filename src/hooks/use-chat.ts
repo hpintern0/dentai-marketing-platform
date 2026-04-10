@@ -124,11 +124,20 @@ export function useChat(clientId: string | null) {
       await fetch('/api/pipeline', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(campaign.job_payload),
+        body: JSON.stringify({
+          ...campaign.job_payload,
+          campaign_id: campaign.id,
+          client_id: clientId,
+        }),
       });
 
-      const statusMessage = createMessage('assistant', 'Pipeline iniciado! Acompanhe o progresso abaixo.', 'pipeline_status', { campaign_id: campaign.id });
+      const statusMessage = createMessage('assistant', `Pipeline iniciado! Acompanhe o progresso na página da campanha. Redirecionando...`, 'pipeline_status', { campaign_id: campaign.id });
       setMessages(prev => [...prev, statusMessage]);
+
+      // Redirect to campaign page after 2 seconds
+      setTimeout(() => {
+        window.location.href = `/campanhas/${campaign.id}`;
+      }, 2000);
       setCurrentBrief(null);
     } catch (error) {
       const errorMessage = createMessage('system', 'Erro ao iniciar campanha. Tente novamente.', 'text');
