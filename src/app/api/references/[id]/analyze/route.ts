@@ -36,8 +36,19 @@ export async function POST(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: updateError.message }, { status: 500 });
     }
 
-    // TODO: Enqueue actual analysis job to your worker/queue system
-    // For now, we record the job intent and return immediately
+    // Enqueue analysis job to BullMQ
+    try {
+      const { enqueueJob } = require('@/../pipeline/queue');
+      await enqueueJob('dental_research_agent', {
+        task_name: `analyze_ref_${id}_${Date.now()}`,
+        reference_id: id,
+        instagram_handle: reference.instagram_handle,
+        mode: 'reference_analysis',
+      });
+    } catch (enqueueErr: any) {
+      console.error('[Analyze API] Failed to enqueue analysis job:', enqueueErr?.message);
+    }
+
     return NextResponse.json({
       message: 'Analysis job queued',
       data: {

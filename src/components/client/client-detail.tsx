@@ -3,7 +3,6 @@
 import {
   MapPin,
   Instagram,
-  Youtube,
   Shield,
   Palette,
   Type,
@@ -37,7 +36,7 @@ interface ClientData {
   city: string;
   state: string;
   instagram: string;
-  youtube: string;
+
   cro: string;
   tone: string;
   avatar: string;
@@ -80,12 +79,6 @@ export default function ClientDetail({ client }: { client: ClientData }) {
                 <span className="flex items-center gap-1">
                   <Instagram className="h-3.5 w-3.5" />
                   {client.instagram}
-                </span>
-              )}
-              {client.youtube && (
-                <span className="flex items-center gap-1">
-                  <Youtube className="h-3.5 w-3.5" />
-                  {client.youtube}
                 </span>
               )}
               {client.cro && (

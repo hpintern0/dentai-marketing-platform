@@ -143,7 +143,6 @@ ${copyList || 'Nenhuma copy disponível.'}
 |---|---|---|---|
 | Instagram Feed | Próxima ${scheduling.best_days?.[0] || 'terça'} | ${scheduling.best_times?.[0] || '19h'} | Aguardando aprovação |
 | Instagram Stories | Mesmo dia | ${scheduling.best_times?.[1] || '12h'} | Aguardando aprovação |
-| Threads | Mesmo dia | ${scheduling.best_times?.[0] || '19h'} | Posting manual |
 
 ---
 
@@ -153,14 +152,6 @@ ${copyList || 'Nenhuma copy disponível.'}
 1. Confirme a aprovação de todas as peças no dashboard
 2. Clique em "Publicar" — o sistema faz upload e publica via Graph API
 3. Stories: publicação via Graph API com media_type=STORIES
-
-### YouTube Shorts (Automático via Data API)
-1. Vídeo será publicado via YouTube Data API v3
-2. Metadata (título, descrição, tags) conforme youtube_metadata.json
-
-### Threads (Manual)
-1. Copy disponível acima em threads_post
-2. Copie e cole diretamente no Threads (sem API pública disponível)
 
 ---
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Plus,
   Search,
@@ -15,128 +15,182 @@ import {
   Palette,
   Calendar,
   Target,
+  Loader2,
+  AlertCircle,
 } from 'lucide-react';
 
 interface ReferenceProfile {
-  id: number;
-  handle: string;
+  id: string;
+  instagram_handle: string;
   specialty: string;
   category: string;
-  client: string;
-  status: 'analyzed' | 'pending' | 'analyzing';
-  lastAnalyzed: string;
+  notes?: string;
+  client_id?: string;
+  analysis_status: string;
+  last_analyzed_at?: string;
   insights?: {
-    topFormats: string[];
-    themes: string[];
-    hooks: string[];
-    tone: string;
-    frequency: string;
-    hashtags: string[];
-    ctaPatterns: string[];
+    top_formats?: string[];
+    recurring_themes?: string[];
+    high_performance_hooks?: string[];
+    predominant_tone?: string;
+    posting_frequency?: string;
+    hashtag_usage?: string[];
+    cta_patterns?: string[];
+    qualitative_notes?: string;
   };
+  clients?: { id: string; name: string };
 }
 
-const profiles: ReferenceProfile[] = [
-  {
-    id: 1,
-    handle: '@dica.odonto',
-    specialty: 'Odontologia Geral',
-    category: 'Educacional',
-    client: 'Dr. Ricardo Silva',
-    status: 'analyzed',
-    lastAnalyzed: '2026-04-08',
-    insights: {
-      topFormats: ['Carrossel (45%)', 'Reels (35%)', 'Post unico (20%)'],
-      themes: ['Higiene bucal', 'Mitos vs Verdades', 'Dicas pos-procedimento', 'Prevencao'],
-      hooks: ['Voce sabia que...', 'O erro mais comum...', 'Pare de fazer isso!', 'Dentista revela...'],
-      tone: 'Educativo e acessivel, tom conversacional com autoridade profissional',
-      frequency: '5x por semana (Seg-Sex)',
-      hashtags: ['#odontologia', '#saudebucal', '#dentista', '#dicasdedentista', '#sorriso'],
-      ctaPatterns: ['Salve para lembrar!', 'Marque alguem que precisa ver isso', 'Agende sua consulta pelo link na bio'],
-    },
-  },
-  {
-    id: 2,
-    handle: '@implantes.expert',
-    specialty: 'Implantodontia',
-    category: 'Antes e Depois',
-    client: 'Dr. Ricardo Silva',
-    status: 'analyzed',
-    lastAnalyzed: '2026-04-07',
-    insights: {
-      topFormats: ['Reels (55%)', 'Carrossel (30%)', 'Stories destaque (15%)'],
-      themes: ['Transformacao de sorriso', 'Processo do implante', 'Depoimentos', 'Tecnologia'],
-      hooks: ['Resultado incrivel!', 'Veja a transformacao...', 'Paciente emocionado(a)...'],
-      tone: 'Inspiracional e tecnico, misturando resultados emocionais com credibilidade',
-      frequency: '4x por semana',
-      hashtags: ['#implantedentario', '#implantes', '#sorrisonovo', '#antesedepois'],
-      ctaPatterns: ['Agende sua avaliacao', 'Link na bio para saber mais', 'Comente SIM para receber informacoes'],
-    },
-  },
-  {
-    id: 3,
-    handle: '@estetica.dental',
-    specialty: 'Odontologia Estetica',
-    category: 'Lifestyle',
-    client: 'Clinica Sorriso',
-    status: 'pending',
-    lastAnalyzed: '-',
-  },
-  {
-    id: 4,
-    handle: '@orto.moderna',
-    specialty: 'Ortodontia',
-    category: 'Educacional',
-    client: 'Dra. Camila Mendes',
-    status: 'analyzing',
-    lastAnalyzed: '-',
-  },
-  {
-    id: 5,
-    handle: '@facetas.perfeitas',
-    specialty: 'Facetas e Lentes',
-    category: 'Antes e Depois',
-    client: 'Dr. Fernando Oliveira',
-    status: 'analyzed',
-    lastAnalyzed: '2026-04-05',
-    insights: {
-      topFormats: ['Reels (60%)', 'Carrossel (25%)', 'Post unico (15%)'],
-      themes: ['Harmonizacao', 'Casos clinicos', 'Materiais premium', 'FAQ pacientes'],
-      hooks: ['Sorriso dos sonhos!', 'Facetas ou lentes?', 'O investimento que muda sua vida'],
-      tone: 'Aspiracional e premium, enfatizando qualidade e resultado',
-      frequency: '3x por semana',
-      hashtags: ['#facetas', '#lentesdecontato', '#odontologiaestetica', '#sorrisoperfeito'],
-      ctaPatterns: ['Agende sua simulacao digital', 'Envie DM para orcamento', 'Clique no link da bio'],
-    },
-  },
-];
-
 const statusBadge: Record<string, { label: string; class: string }> = {
-  analyzed: { label: 'Analisado', class: 'badge-success' },
-  pending: { label: 'Pendente', class: 'badge-neutral' },
-  analyzing: { label: 'Analisando...', class: 'badge-info' },
+  analisado: { label: 'Analisado', class: 'badge-success' },
+  pendente: { label: 'Pendente', class: 'badge-neutral' },
+  processing: { label: 'Analisando...', class: 'badge-info' },
+  erro: { label: 'Erro', class: 'badge-error' },
 };
 
 export default function ReferenciasPage() {
+  const [references, setReferences] = useState<ReferenceProfile[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
-  const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [filterSpecialty, setFilterSpecialty] = useState('Todas');
   const [filterCategory, setFilterCategory] = useState('Todas');
+  const [clients, setClients] = useState<{ id: string; name: string }[]>([]);
 
-  const specialties = ['Todas', ...Array.from(new Set(profiles.map((p) => p.specialty)))];
-  const categories = ['Todas', ...Array.from(new Set(profiles.map((p) => p.category)))];
+  // Form state for add modal
+  const [formHandle, setFormHandle] = useState('');
+  const [formSpecialty, setFormSpecialty] = useState('');
+  const [formCategory, setFormCategory] = useState('');
+  const [formClientId, setFormClientId] = useState('');
+  const [formLoading, setFormLoading] = useState(false);
 
-  const filtered = profiles.filter((p) => {
+  const fetchReferences = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const params = new URLSearchParams();
+      if (filterSpecialty !== 'Todas') params.set('specialty', filterSpecialty);
+      if (filterCategory !== 'Todas') params.set('category', filterCategory);
+
+      const res = await fetch(`/api/references?${params}`);
+      if (!res.ok) throw new Error('Erro ao carregar referencias');
+      const json = await res.json();
+      setReferences(Array.isArray(json.data) ? json.data : Array.isArray(json) ? json : []);
+    } catch (err: any) {
+      setError(err.message ?? 'Erro inesperado');
+    } finally {
+      setLoading(false);
+    }
+  }, [filterSpecialty, filterCategory]);
+
+  useEffect(() => {
+    fetchReferences();
+  }, [fetchReferences]);
+
+  // Fetch clients for the add modal
+  useEffect(() => {
+    async function fetchClients() {
+      try {
+        const res = await fetch('/api/clients');
+        if (res.ok) {
+          const data = await res.json();
+          setClients(Array.isArray(data) ? data.map((c: any) => ({ id: c.id, name: c.name })) : []);
+        }
+      } catch {
+        // silently fail
+      }
+    }
+    fetchClients();
+  }, []);
+
+  const specialties = ['Todas', ...Array.from(new Set(references.map((p) => p.specialty).filter(Boolean)))];
+  const categories = ['Todas', ...Array.from(new Set(references.map((p) => p.category).filter(Boolean)))];
+
+  const filtered = references.filter((p) => {
     const matchSearch =
-      p.handle.toLowerCase().includes(search.toLowerCase()) ||
-      p.client.toLowerCase().includes(search.toLowerCase());
-    const matchSpecialty =
-      filterSpecialty === 'Todas' || p.specialty === filterSpecialty;
-    const matchCategory =
-      filterCategory === 'Todas' || p.category === filterCategory;
-    return matchSearch && matchSpecialty && matchCategory;
+      p.instagram_handle.toLowerCase().includes(search.toLowerCase()) ||
+      (p.clients?.name ?? '').toLowerCase().includes(search.toLowerCase());
+    return matchSearch;
   });
+
+  const handleAnalyze = async (id: string) => {
+    try {
+      await fetch(`/api/references/${id}/analyze`, { method: 'POST' });
+      // Optimistically update status
+      setReferences((prev) =>
+        prev.map((r) => (r.id === id ? { ...r, analysis_status: 'processing' } : r)),
+      );
+    } catch {
+      // silently fail
+    }
+  };
+
+  const handleAddReference = async () => {
+    if (!formHandle.trim()) return;
+    setFormLoading(true);
+    try {
+      const res = await fetch('/api/references', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          instagram_handle: formHandle,
+          specialty: formSpecialty || undefined,
+          category: formCategory || undefined,
+          client_id: formClientId || undefined,
+        }),
+      });
+      if (res.ok) {
+        setShowAddModal(false);
+        setFormHandle('');
+        setFormSpecialty('');
+        setFormCategory('');
+        setFormClientId('');
+        fetchReferences();
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  if (loading && references.length === 0) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Perfis de Referencia</h1>
+          <p className="mt-1 text-sm text-gray-500">Carregando...</p>
+        </div>
+        <div className="card animate-pulse">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="flex items-center gap-4 py-4 border-b border-gray-100 last:border-0">
+              <div className="h-4 w-24 rounded bg-gray-200" />
+              <div className="h-4 w-20 rounded bg-gray-200" />
+              <div className="h-4 w-16 rounded bg-gray-200" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Perfis de Referencia</h1>
+        </div>
+        <div className="card border-red-200 bg-red-50">
+          <div className="flex items-center gap-2 text-red-700">
+            <AlertCircle className="h-5 w-5" />
+            <p className="text-sm font-medium">{error}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -222,113 +276,155 @@ export default function ReferenciasPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {filtered.map((profile) => {
-              const isExpanded = expandedId === profile.id;
-              const badge = statusBadge[profile.status];
-              return (
-                <tr key={profile.id} className="group">
-                  <td colSpan={7} className="p-0">
-                    <div>
-                      <div
-                        className="flex cursor-pointer items-center hover:bg-gray-50 transition-colors"
-                        onClick={() =>
-                          setExpandedId(isExpanded ? null : profile.id)
-                        }
-                      >
-                        <td className="px-6 py-4 text-sm font-medium text-dental-blue">
-                          {profile.handle}
-                        </td>
-                        <td className="hidden px-6 py-4 text-sm text-gray-600 md:table-cell">
-                          {profile.specialty}
-                        </td>
-                        <td className="hidden px-6 py-4 text-sm text-gray-600 lg:table-cell">
-                          {profile.category}
-                        </td>
-                        <td className="hidden px-6 py-4 text-sm text-gray-600 sm:table-cell">
-                          {profile.client}
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={badge.class}>{badge.label}</span>
-                        </td>
-                        <td className="hidden px-6 py-4 text-sm text-gray-500 lg:table-cell">
-                          {profile.lastAnalyzed}
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                              }}
-                              className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 transition-colors"
-                            >
-                              <RefreshCw className="h-3.5 w-3.5 inline mr-1" />
-                              Analisar agora
-                            </button>
-                            {isExpanded ? (
-                              <ChevronUp className="h-4 w-4 text-gray-400" />
-                            ) : (
-                              <ChevronDown className="h-4 w-4 text-gray-400" />
+            {filtered.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="py-12 text-center text-sm text-gray-500">
+                  Nenhum perfil de referencia encontrado.
+                </td>
+              </tr>
+            ) : (
+              filtered.map((profile) => {
+                const isExpanded = expandedId === profile.id;
+                const badge = statusBadge[profile.analysis_status] ?? statusBadge.pendente;
+                return (
+                  <tr key={profile.id} className="group">
+                    <td colSpan={7} className="p-0">
+                      <div>
+                        <div
+                          className="flex cursor-pointer items-center hover:bg-gray-50 transition-colors"
+                          onClick={() =>
+                            setExpandedId(isExpanded ? null : profile.id)
+                          }
+                        >
+                          <td className="px-6 py-4 text-sm font-medium text-dental-blue">
+                            {profile.instagram_handle}
+                          </td>
+                          <td className="hidden px-6 py-4 text-sm text-gray-600 md:table-cell">
+                            {profile.specialty || '-'}
+                          </td>
+                          <td className="hidden px-6 py-4 text-sm text-gray-600 lg:table-cell">
+                            {profile.category || '-'}
+                          </td>
+                          <td className="hidden px-6 py-4 text-sm text-gray-600 sm:table-cell">
+                            {profile.clients?.name ?? '-'}
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={badge.class}>{badge.label}</span>
+                          </td>
+                          <td className="hidden px-6 py-4 text-sm text-gray-500 lg:table-cell">
+                            {profile.last_analyzed_at
+                              ? new Date(profile.last_analyzed_at).toLocaleDateString('pt-BR')
+                              : '-'}
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAnalyze(profile.id);
+                                }}
+                                disabled={profile.analysis_status === 'processing'}
+                                className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 transition-colors disabled:opacity-50"
+                              >
+                                <RefreshCw className={`h-3.5 w-3.5 inline mr-1 ${profile.analysis_status === 'processing' ? 'animate-spin' : ''}`} />
+                                Analisar agora
+                              </button>
+                              {isExpanded ? (
+                                <ChevronUp className="h-4 w-4 text-gray-400" />
+                              ) : (
+                                <ChevronDown className="h-4 w-4 text-gray-400" />
+                              )}
+                            </div>
+                          </td>
+                        </div>
+
+                        {/* Expanded Insights Panel */}
+                        {isExpanded && profile.insights && (
+                          <div className="border-t border-gray-100 bg-gradient-to-b from-dental-blue-50/30 to-white px-6 py-5">
+                            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                              {profile.insights.top_formats && profile.insights.top_formats.length > 0 && (
+                                <InsightCard
+                                  icon={Palette}
+                                  title="Top Formatos"
+                                  items={profile.insights.top_formats}
+                                />
+                              )}
+                              {profile.insights.recurring_themes && profile.insights.recurring_themes.length > 0 && (
+                                <InsightCard
+                                  icon={TrendingUp}
+                                  title="Temas Recorrentes"
+                                  items={profile.insights.recurring_themes}
+                                />
+                              )}
+                              {profile.insights.high_performance_hooks && profile.insights.high_performance_hooks.length > 0 && (
+                                <InsightCard
+                                  icon={MessageSquare}
+                                  title="Hooks"
+                                  items={profile.insights.high_performance_hooks}
+                                />
+                              )}
+                              {profile.insights.predominant_tone && (
+                                <div className="rounded-lg border border-gray-200 bg-white p-4">
+                                  <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-900">
+                                    <Palette className="h-4 w-4 text-dental-teal" />
+                                    Tom de Voz
+                                  </div>
+                                  <p className="text-sm text-gray-600">
+                                    {profile.insights.predominant_tone}
+                                  </p>
+                                </div>
+                              )}
+                              {profile.insights.posting_frequency && (
+                                <div className="rounded-lg border border-gray-200 bg-white p-4">
+                                  <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-900">
+                                    <Calendar className="h-4 w-4 text-dental-teal" />
+                                    Frequencia
+                                  </div>
+                                  <p className="text-sm text-gray-600">
+                                    {profile.insights.posting_frequency}
+                                  </p>
+                                </div>
+                              )}
+                              {profile.insights.hashtag_usage && profile.insights.hashtag_usage.length > 0 && (
+                                <InsightCard
+                                  icon={Hash}
+                                  title="Hashtags"
+                                  items={profile.insights.hashtag_usage}
+                                />
+                              )}
+                              {profile.insights.cta_patterns && profile.insights.cta_patterns.length > 0 && (
+                                <InsightCard
+                                  icon={Target}
+                                  title="Padroes de CTA"
+                                  items={profile.insights.cta_patterns}
+                                  className="md:col-span-2 lg:col-span-1"
+                                />
+                              )}
+                            </div>
+                            {profile.insights.qualitative_notes && (
+                              <div className="mt-4 rounded-lg border border-gray-200 bg-white p-4">
+                                <p className="text-sm font-semibold text-gray-900 mb-2">Notas Qualitativas</p>
+                                <p className="text-sm text-gray-600">{profile.insights.qualitative_notes}</p>
+                              </div>
                             )}
                           </div>
-                        </td>
-                      </div>
+                        )}
 
-                      {/* Expanded Insights Panel */}
-                      {isExpanded && profile.insights && (
-                        <div className="border-t border-gray-100 bg-gradient-to-b from-dental-blue-50/30 to-white px-6 py-5">
-                          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-                            <InsightCard
-                              icon={Palette}
-                              title="Top Formatos"
-                              items={profile.insights.topFormats}
-                            />
-                            <InsightCard
-                              icon={TrendingUp}
-                              title="Temas Recorrentes"
-                              items={profile.insights.themes}
-                            />
-                            <InsightCard
-                              icon={MessageSquare}
-                              title="Hooks"
-                              items={profile.insights.hooks}
-                            />
-                            <div className="rounded-lg border border-gray-200 bg-white p-4">
-                              <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-900">
-                                <Palette className="h-4 w-4 text-dental-teal" />
-                                Tom de Voz
-                              </div>
-                              <p className="text-sm text-gray-600">
-                                {profile.insights.tone}
-                              </p>
-                            </div>
-                            <div className="rounded-lg border border-gray-200 bg-white p-4">
-                              <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-900">
-                                <Calendar className="h-4 w-4 text-dental-teal" />
-                                Frequencia
-                              </div>
-                              <p className="text-sm text-gray-600">
-                                {profile.insights.frequency}
-                              </p>
-                            </div>
-                            <InsightCard
-                              icon={Hash}
-                              title="Hashtags"
-                              items={profile.insights.hashtags}
-                            />
-                            <InsightCard
-                              icon={Target}
-                              title="Padroes de CTA"
-                              items={profile.insights.ctaPatterns}
-                              className="md:col-span-2 lg:col-span-1"
-                            />
+                        {isExpanded && !profile.insights && (
+                          <div className="border-t border-gray-100 px-6 py-8 text-center">
+                            <p className="text-sm text-gray-500">
+                              {profile.analysis_status === 'processing'
+                                ? 'Analise em andamento...'
+                                : 'Nenhuma analise disponivel. Clique em "Analisar agora" para iniciar.'}
+                            </p>
                           </div>
-                        </div>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
           </tbody>
         </table>
       </div>
@@ -348,11 +444,13 @@ export default function ReferenciasPage() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Handle do Instagram
+                  Handle do Instagram *
                 </label>
                 <input
                   type="text"
                   placeholder="@perfil"
+                  value={formHandle}
+                  onChange={(e) => setFormHandle(e.target.value)}
                   className="w-full rounded-lg border border-gray-200 px-4 py-2 text-sm focus:border-dental-blue focus:outline-none focus:ring-1 focus:ring-dental-blue"
                 />
               </div>
@@ -360,51 +458,70 @@ export default function ReferenciasPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Especialidade
                 </label>
-                <select className="w-full rounded-lg border border-gray-200 px-4 py-2 text-sm focus:border-dental-blue focus:outline-none focus:ring-1 focus:ring-dental-blue">
-                  <option>Selecione...</option>
-                  <option>Implantodontia</option>
-                  <option>Odontologia Estetica</option>
-                  <option>Ortodontia</option>
-                  <option>Facetas e Lentes</option>
-                  <option>Clinica Geral</option>
+                <select
+                  value={formSpecialty}
+                  onChange={(e) => setFormSpecialty(e.target.value)}
+                  className="w-full rounded-lg border border-gray-200 px-4 py-2 text-sm focus:border-dental-blue focus:outline-none focus:ring-1 focus:ring-dental-blue"
+                >
+                  <option value="">Selecione...</option>
+                  <option value="estetica">Odontologia Estetica</option>
+                  <option value="ortodontia">Ortodontia</option>
+                  <option value="implantodontia">Implantodontia</option>
+                  <option value="clinica_geral">Clinica Geral</option>
+                  <option value="harmonizacao">Harmonizacao</option>
+                  <option value="periodontia">Periodontia</option>
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Categoria
                 </label>
-                <select className="w-full rounded-lg border border-gray-200 px-4 py-2 text-sm focus:border-dental-blue focus:outline-none focus:ring-1 focus:ring-dental-blue">
-                  <option>Selecione...</option>
-                  <option>Educacional</option>
-                  <option>Antes e Depois</option>
-                  <option>Lifestyle</option>
-                  <option>Tecnico</option>
+                <select
+                  value={formCategory}
+                  onChange={(e) => setFormCategory(e.target.value)}
+                  className="w-full rounded-lg border border-gray-200 px-4 py-2 text-sm focus:border-dental-blue focus:outline-none focus:ring-1 focus:ring-dental-blue"
+                >
+                  <option value="">Selecione...</option>
+                  <option value="benchmark_nacional">Benchmark Nacional</option>
+                  <option value="benchmark_regional">Benchmark Regional</option>
+                  <option value="concorrente_direto">Concorrente Direto</option>
+                  <option value="inspiracao_estetica">Inspiracao Estetica</option>
+                  <option value="referencia_educativa">Referencia Educativa</option>
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Cliente Associado
                 </label>
-                <select className="w-full rounded-lg border border-gray-200 px-4 py-2 text-sm focus:border-dental-blue focus:outline-none focus:ring-1 focus:ring-dental-blue">
-                  <option>Selecione...</option>
-                  <option>Dr. Ricardo Silva</option>
-                  <option>Clinica Sorriso</option>
-                  <option>Dra. Camila Mendes</option>
-                  <option>Dr. Fernando Oliveira</option>
+                <select
+                  value={formClientId}
+                  onChange={(e) => setFormClientId(e.target.value)}
+                  className="w-full rounded-lg border border-gray-200 px-4 py-2 text-sm focus:border-dental-blue focus:outline-none focus:ring-1 focus:ring-dental-blue"
+                >
+                  <option value="">Selecione...</option>
+                  {clients.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
                 </select>
               </div>
               <div className="flex gap-3 pt-2">
                 <button
                   onClick={() => setShowAddModal(false)}
                   className="btn-secondary flex-1"
+                  disabled={formLoading}
                 >
                   Cancelar
                 </button>
                 <button
-                  onClick={() => setShowAddModal(false)}
+                  onClick={handleAddReference}
                   className="btn-primary flex-1"
+                  disabled={formLoading || !formHandle.trim()}
                 >
-                  Adicionar e Analisar
+                  {formLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin mx-auto" />
+                  ) : (
+                    'Adicionar e Analisar'
+                  )}
                 </button>
               </div>
             </div>

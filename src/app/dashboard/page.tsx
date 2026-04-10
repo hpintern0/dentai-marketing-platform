@@ -1,5 +1,7 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import {
   Users,
   Megaphone,
@@ -12,137 +14,29 @@ import {
   ArrowUpRight,
 } from 'lucide-react';
 
-const stats = [
-  {
-    label: 'Total Clientes',
-    value: '24',
-    change: '+3 este mes',
-    icon: Users,
-    color: 'bg-dental-blue-100 text-dental-blue-700',
-  },
-  {
-    label: 'Campanhas Ativas',
-    value: '8',
-    change: '2 em execucao',
-    icon: Megaphone,
-    color: 'bg-dental-teal-100 text-dental-teal-700',
-  },
-  {
-    label: 'Aguardando Aprovacao',
-    value: '5',
-    change: '3 urgentes',
-    icon: Clock,
-    color: 'bg-yellow-100 text-yellow-700',
-  },
-  {
-    label: 'Publicadas',
-    value: '142',
-    change: '+18 esta semana',
-    icon: CheckCircle2,
-    color: 'bg-green-100 text-green-700',
-  },
-];
+interface ClientData {
+  id: string;
+  name: string;
+}
 
-const pipelineCampaigns = [
-  {
-    id: 1,
-    name: 'Implantes Dentarios - Dr. Silva',
-    status: 'complete',
-    step: 'Finalizado',
-    time: '12 min atras',
-  },
-  {
-    id: 2,
-    name: 'Clareamento - Clinica Sorriso',
-    status: 'running',
-    step: 'Gerando criativos...',
-    time: 'Em andamento',
-  },
-  {
-    id: 3,
-    name: 'Ortodontia - Dra. Mendes',
-    status: 'running',
-    step: 'Criando copy...',
-    time: 'Em andamento',
-  },
-  {
-    id: 4,
-    name: 'Facetas - Dr. Oliveira',
-    status: 'queued',
-    step: 'Na fila',
-    time: 'Aguardando',
-  },
-  {
-    id: 5,
-    name: 'Protese - Clinica OdontoPlus',
-    status: 'failed',
-    step: 'Erro na geracao de imagem',
-    time: '45 min atras',
-  },
-];
-
-const pendingApprovals = [
-  {
-    id: 1,
-    title: 'Carrossel: 5 Beneficios do Implante',
-    client: 'Dr. Silva',
-    type: 'Carrossel',
-    created: '2h atras',
-  },
-  {
-    id: 2,
-    title: 'Reels: Antes e Depois Clareamento',
-    client: 'Clinica Sorriso',
-    type: 'Video',
-    created: '4h atras',
-  },
-  {
-    id: 3,
-    title: 'Post: Dica de Higiene Bucal',
-    client: 'Dra. Mendes',
-    type: 'Imagem',
-    created: '6h atras',
-  },
-];
-
-const recentActivity = [
-  {
-    action: 'Campanha publicada',
-    detail: 'Limpeza Dental - Dr. Costa publicada no Instagram',
-    time: '30 min atras',
-    type: 'success',
-  },
-  {
-    action: 'Novo cliente adicionado',
-    detail: 'Clinica DentVida cadastrada com sucesso',
-    time: '1h atras',
-    type: 'info',
-  },
-  {
-    action: 'Aprovacao pendente',
-    detail: 'Dr. Silva precisa aprovar 2 criativos',
-    time: '2h atras',
-    type: 'warning',
-  },
-  {
-    action: 'Analise concluida',
-    detail: 'Perfil @dica.odonto analisado com sucesso',
-    time: '3h atras',
-    type: 'info',
-  },
-  {
-    action: 'Erro no pipeline',
-    detail: 'Falha na geracao de imagem para Clinica OdontoPlus',
-    time: '4h atras',
-    type: 'error',
-  },
-];
+interface CampaignData {
+  id: string;
+  name: string;
+  status: string;
+  created_at: string;
+  clients?: { id: string; name: string };
+}
 
 const statusConfig: Record<string, { icon: typeof CheckCircle2; class: string; label: string }> = {
   complete: { icon: CheckCircle2, class: 'text-green-600', label: 'Concluido' },
-  running: { icon: Loader2, class: 'text-dental-blue animate-spin', label: 'Executando' },
-  queued: { icon: Play, class: 'text-gray-400', label: 'Na fila' },
+  generating: { icon: Loader2, class: 'text-dental-blue animate-spin', label: 'Executando' },
+  draft: { icon: Play, class: 'text-gray-400', label: 'Rascunho' },
   failed: { icon: XCircle, class: 'text-red-500', label: 'Falhou' },
+  reviewing: { icon: Clock, class: 'text-yellow-500', label: 'Em revisao' },
+  approved: { icon: CheckCircle2, class: 'text-green-500', label: 'Aprovado' },
+  published: { icon: CheckCircle2, class: 'text-green-600', label: 'Publicado' },
+  scheduled: { icon: Clock, class: 'text-blue-500', label: 'Agendado' },
+  briefing: { icon: Loader2, class: 'text-dental-blue animate-spin', label: 'Briefing' },
 };
 
 const activityColors: Record<string, string> = {
@@ -152,7 +46,149 @@ const activityColors: Record<string, string> = {
   error: 'bg-red-500',
 };
 
+function getStatusType(status: string): string {
+  if (status === 'published' || status === 'approved') return 'success';
+  if (status === 'failed') return 'error';
+  if (status === 'reviewing') return 'warning';
+  return 'info';
+}
+
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 60) return `${minutes} min atras`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h atras`;
+  const days = Math.floor(hours / 24);
+  return `${days}d atras`;
+}
+
 export default function DashboardPage() {
+  const [clients, setClients] = useState<ClientData[]>([]);
+  const [campaigns, setCampaigns] = useState<CampaignData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchData() {
+      setLoading(true);
+      setError(null);
+      try {
+        const [clientsRes, campaignsRes] = await Promise.all([
+          fetch('/api/clients'),
+          fetch('/api/campaigns'),
+        ]);
+
+        if (!clientsRes.ok || !campaignsRes.ok) {
+          throw new Error('Erro ao carregar dados');
+        }
+
+        const clientsData = await clientsRes.json();
+        const campaignsJson = await campaignsRes.json();
+        const campaignsData = campaignsJson.data ?? campaignsJson;
+
+        setClients(Array.isArray(clientsData) ? clientsData : []);
+        setCampaigns(Array.isArray(campaignsData) ? campaignsData : []);
+      } catch (err: any) {
+        setError(err.message ?? 'Erro inesperado');
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
+
+  const activeCampaigns = campaigns.filter(
+    (c) => c.status === 'generating' || c.status === 'reviewing' || c.status === 'approved' || c.status === 'scheduled',
+  );
+  const pendingApprovals = campaigns.filter((c) => c.status === 'reviewing');
+  const publishedCampaigns = campaigns.filter((c) => c.status === 'published');
+  const pipelineCampaigns = campaigns
+    .filter((c) => ['generating', 'reviewing', 'approved', 'draft', 'failed'].includes(c.status))
+    .slice(0, 5);
+  const recentCampaigns = [...campaigns]
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 5);
+
+  const stats = [
+    {
+      label: 'Total Clientes',
+      value: String(clients.length),
+      change: '',
+      icon: Users,
+      color: 'bg-dental-blue-100 text-dental-blue-700',
+    },
+    {
+      label: 'Campanhas Ativas',
+      value: String(activeCampaigns.length),
+      change: `${campaigns.filter((c) => c.status === 'generating').length} em execucao`,
+      icon: Megaphone,
+      color: 'bg-dental-teal-100 text-dental-teal-700',
+    },
+    {
+      label: 'Aguardando Aprovacao',
+      value: String(pendingApprovals.length),
+      change: '',
+      icon: Clock,
+      color: 'bg-yellow-100 text-yellow-700',
+    },
+    {
+      label: 'Publicadas',
+      value: String(publishedCampaigns.length),
+      change: '',
+      icon: CheckCircle2,
+      color: 'bg-green-100 text-green-700',
+    },
+  ];
+
+  if (loading) {
+    return (
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+          <p className="mt-1 text-sm text-gray-500">
+            Visao geral da plataforma de marketing
+          </p>
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="card animate-pulse">
+              <div className="h-4 w-24 rounded bg-gray-200" />
+              <div className="mt-3 h-8 w-16 rounded bg-gray-200" />
+              <div className="mt-2 h-3 w-20 rounded bg-gray-200" />
+            </div>
+          ))}
+        </div>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {[1, 2].map((i) => (
+            <div key={i} className="card animate-pulse">
+              <div className="h-5 w-40 rounded bg-gray-200 mb-4" />
+              {[1, 2, 3].map((j) => (
+                <div key={j} className="h-12 rounded bg-gray-100 mb-3" />
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+        </div>
+        <div className="card border-red-200 bg-red-50">
+          <div className="flex items-center gap-2 text-red-700">
+            <AlertCircle className="h-5 w-5" />
+            <p className="text-sm font-medium">{error}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -173,7 +209,9 @@ export default function DashboardPage() {
                 <p className="mt-2 text-3xl font-bold text-gray-900">
                   {stat.value}
                 </p>
-                <p className="mt-1 text-xs text-gray-500">{stat.change}</p>
+                {stat.change && (
+                  <p className="mt-1 text-xs text-gray-500">{stat.change}</p>
+                )}
               </div>
               <div className={`rounded-lg p-2.5 ${stat.color}`}>
                 <stat.icon className="h-5 w-5" />
@@ -190,32 +228,40 @@ export default function DashboardPage() {
             <h2 className="text-lg font-semibold text-gray-900">
               Status do Pipeline
             </h2>
-            <button className="text-sm font-medium text-dental-blue hover:text-dental-blue-700">
+            <Link href="/campanhas" className="text-sm font-medium text-dental-blue hover:text-dental-blue-700">
               Ver todos
-            </button>
+            </Link>
           </div>
           <div className="space-y-3">
-            {pipelineCampaigns.map((campaign) => {
-              const config = statusConfig[campaign.status];
-              const StatusIcon = config.icon;
-              return (
-                <div
-                  key={campaign.id}
-                  className="flex items-center gap-3 rounded-lg border border-gray-100 p-3 hover:bg-gray-50 transition-colors"
-                >
-                  <StatusIcon className={`h-5 w-5 flex-shrink-0 ${config.class}`} />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-gray-900">
-                      {campaign.name}
-                    </p>
-                    <p className="text-xs text-gray-500">{campaign.step}</p>
-                  </div>
-                  <span className="text-xs text-gray-400 whitespace-nowrap">
-                    {campaign.time}
-                  </span>
-                </div>
-              );
-            })}
+            {pipelineCampaigns.length === 0 ? (
+              <p className="py-6 text-center text-sm text-gray-500">
+                Nenhuma campanha no pipeline.
+              </p>
+            ) : (
+              pipelineCampaigns.map((campaign) => {
+                const config = statusConfig[campaign.status] ?? statusConfig.draft;
+                const StatusIcon = config.icon;
+                return (
+                  <Link
+                    key={campaign.id}
+                    href={`/campanhas/${campaign.id}`}
+                    className="flex items-center gap-3 rounded-lg border border-gray-100 p-3 hover:bg-gray-50 transition-colors"
+                  >
+                    <StatusIcon className={`h-5 w-5 flex-shrink-0 ${config.class}`} />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium text-gray-900">
+                        {campaign.name}
+                        {campaign.clients?.name ? ` - ${campaign.clients.name}` : ''}
+                      </p>
+                      <p className="text-xs text-gray-500">{config.label}</p>
+                    </div>
+                    <span className="text-xs text-gray-400 whitespace-nowrap">
+                      {timeAgo(campaign.created_at)}
+                    </span>
+                  </Link>
+                );
+              })
+            )}
           </div>
         </div>
 
@@ -228,31 +274,37 @@ export default function DashboardPage() {
             <span className="badge-warning">{pendingApprovals.length} pendentes</span>
           </div>
           <div className="space-y-3">
-            {pendingApprovals.map((item) => (
-              <div
-                key={item.id}
-                className="rounded-lg border border-gray-100 p-4 hover:bg-gray-50 transition-colors"
-              >
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">
-                      {item.title}
-                    </p>
-                    <p className="mt-1 text-xs text-gray-500">
-                      {item.client} &middot; {item.type} &middot; {item.created}
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 transition-colors">
-                      Revisar
-                    </button>
-                    <button className="rounded-lg bg-dental-blue px-3 py-1.5 text-xs font-medium text-white hover:bg-dental-blue-700 transition-colors">
-                      Aprovar
-                    </button>
+            {pendingApprovals.length === 0 ? (
+              <p className="py-6 text-center text-sm text-gray-500">
+                Nenhuma campanha aguardando aprovacao.
+              </p>
+            ) : (
+              pendingApprovals.slice(0, 5).map((item) => (
+                <div
+                  key={item.id}
+                  className="rounded-lg border border-gray-100 p-4 hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">
+                        {item.name}
+                      </p>
+                      <p className="mt-1 text-xs text-gray-500">
+                        {item.clients?.name ?? 'Cliente'} &middot; {timeAgo(item.created_at)}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Link
+                        href={`/campanhas/${item.id}`}
+                        className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 transition-colors"
+                      >
+                        Revisar
+                      </Link>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </div>
@@ -263,27 +315,46 @@ export default function DashboardPage() {
           <h2 className="text-lg font-semibold text-gray-900">
             Atividade Recente
           </h2>
-          <button className="flex items-center gap-1 text-sm font-medium text-dental-blue hover:text-dental-blue-700">
+          <Link
+            href="/campanhas"
+            className="flex items-center gap-1 text-sm font-medium text-dental-blue hover:text-dental-blue-700"
+          >
             Ver historico <ArrowUpRight className="h-3.5 w-3.5" />
-          </button>
+          </Link>
         </div>
         <div className="space-y-4">
-          {recentActivity.map((activity, idx) => (
-            <div key={idx} className="flex items-start gap-3">
-              <div
-                className={`mt-1.5 h-2 w-2 flex-shrink-0 rounded-full ${activityColors[activity.type]}`}
-              />
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-gray-900">
-                  {activity.action}
-                </p>
-                <p className="text-xs text-gray-500">{activity.detail}</p>
-              </div>
-              <span className="whitespace-nowrap text-xs text-gray-400">
-                {activity.time}
-              </span>
-            </div>
-          ))}
+          {recentCampaigns.length === 0 ? (
+            <p className="py-6 text-center text-sm text-gray-500">
+              Nenhuma atividade recente.
+            </p>
+          ) : (
+            recentCampaigns.map((campaign) => {
+              const type = getStatusType(campaign.status);
+              const config = statusConfig[campaign.status] ?? statusConfig.draft;
+              return (
+                <Link
+                  key={campaign.id}
+                  href={`/campanhas/${campaign.id}`}
+                  className="flex items-start gap-3 hover:bg-gray-50 rounded-lg p-1 -m-1 transition-colors"
+                >
+                  <div
+                    className={`mt-1.5 h-2 w-2 flex-shrink-0 rounded-full ${activityColors[type]}`}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-gray-900">
+                      {config.label}: {campaign.name}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {campaign.clients?.name ?? 'Cliente'}
+                    </p>
+                  </div>
+                  <span className="whitespace-nowrap text-xs text-gray-400">
+                    {timeAgo(campaign.created_at)}
+                  </span>
+                </Link>
+              );
+            })
+          )}
         </div>
       </div>
     </div>

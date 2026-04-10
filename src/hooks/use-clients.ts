@@ -8,7 +8,6 @@ interface Client {
   city: string;
   state: string;
   instagram_handle: string;
-  youtube_channel?: string;
   cro_number: string;
   tone: string;
   color_palette: any;

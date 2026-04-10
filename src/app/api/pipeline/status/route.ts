@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
       updated_at: campaign.updated_at,
     }));
 
-    return NextResponse.json({ data: jobs, active_count: jobs.length });
+    return NextResponse.json({ jobs, active_count: jobs.length });
   } catch (err) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }

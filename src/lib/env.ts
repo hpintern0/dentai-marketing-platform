@@ -28,10 +28,6 @@ export const env = {
   // Social
   instagramToken: () => getOptionalEnv('INSTAGRAM_ACCESS_TOKEN'),
   instagramAccountId: () => getOptionalEnv('INSTAGRAM_BUSINESS_ACCOUNT_ID'),
-  youtubeClientId: () => getOptionalEnv('YOUTUBE_CLIENT_ID'),
-  youtubeClientSecret: () => getOptionalEnv('YOUTUBE_CLIENT_SECRET'),
-  youtubeRefreshToken: () => getOptionalEnv('YOUTUBE_REFRESH_TOKEN'),
-
   // App
   appUrl: () => getOptionalEnv('NEXT_PUBLIC_APP_URL', 'http://localhost:3000'),
   webhookUrl: () => getOptionalEnv('WEBHOOK_URL'),

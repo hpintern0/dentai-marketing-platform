@@ -57,14 +57,8 @@ Gere JSON com esta estrutura EXATA:
 {
   "campaign_angle": "frase que define o ângulo da campanha",
   "instagram_caption": "hook emocional + benefício + CTA + 5-8 hashtags. Max 2 emojis.",
-  "threads_post": "provocação ou pergunta + desenvolvimento + CTA. Max 500 caracteres.",
   "stories_copy": "texto ultra-curto para sticker ou enquete. Max 30 palavras.",
-  "whatsapp_cta": "mensagem informal e convidativa para link na bio.",
-  "youtube": {
-    "title": "título SEO 60-70 chars",
-    "description": "descrição com keywords, 2-3 parágrafos",
-    "tags": ["array", "de", "tags"]
-  }
+  "whatsapp_cta": "mensagem informal e convidativa para link na bio."
 }`;
 
   const copy = await generateJSON(systemPrompt, `Gere toda a copy para uma campanha de ${procedure_focus}.`);
@@ -73,19 +67,12 @@ Gere JSON com esta estrutura EXATA:
   if (copy.instagram_caption) {
     fs.writeFileSync(path.join(outputDir, 'instagram_caption.txt'), copy.instagram_caption);
   }
-  if (copy.threads_post) {
-    fs.writeFileSync(path.join(outputDir, 'threads_post.txt'), copy.threads_post);
-  }
   if (copy.stories_copy) {
     fs.writeFileSync(path.join(outputDir, 'stories_copy.txt'), copy.stories_copy);
   }
   if (copy.whatsapp_cta) {
     fs.writeFileSync(path.join(outputDir, 'whatsapp_cta.txt'), copy.whatsapp_cta);
   }
-  if (copy.youtube) {
-    fs.writeFileSync(path.join(outputDir, 'youtube_metadata.json'), JSON.stringify(copy.youtube, null, 2));
-  }
-
   // Save full manifest
   fs.writeFileSync(path.join(outputDir, 'copy_manifest.json'), JSON.stringify(copy, null, 2));
 

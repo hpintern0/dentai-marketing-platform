@@ -6,7 +6,6 @@ export interface Client {
   city: string;
   state: string;
   instagram_handle: string;
-  youtube_channel?: string;
   cro_number: string;
   tone: ToneOfVoice;
   color_palette: ColorPalette;
@@ -34,7 +33,7 @@ export interface Typography {
   body_font: string;
 }
 
-export type Platform = 'instagram_feed' | 'instagram_reels' | 'instagram_stories' | 'youtube_shorts' | 'threads';
+export type Platform = 'instagram_feed' | 'instagram_reels' | 'instagram_stories';
 
 // Reference Profile types
 export interface ReferenceProfile {
@@ -52,7 +51,7 @@ export interface ReferenceProfile {
 
 export type ReferenceCategory = 'benchmark_nacional' | 'benchmark_regional' | 'concorrente_direto' | 'inspiracao_estetica' | 'referencia_educativa';
 
-export type AnalysisStatus = 'pendente' | 'analisado' | 'erro';
+export type AnalysisStatus = 'pendente' | 'analisando' | 'analisado' | 'erro';
 
 export interface ReferenceInsights {
   top_formats: string[];
@@ -238,7 +237,7 @@ export interface ScheduledPost {
   scheduled_at: string;
   media_urls: string[];
   caption: string;
-  status: 'scheduled' | 'published' | 'failed' | 'cancelled';
+  status: 'scheduled' | 'publishing' | 'published' | 'failed' | 'cancelled';
 }
 
 // Video types

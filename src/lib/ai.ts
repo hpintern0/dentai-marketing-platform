@@ -1,5 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 
+const DEFAULT_MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-20250514';
+
 let _client: Anthropic | null = null;
 
 export function getAI(): Anthropic {
@@ -17,7 +19,7 @@ export async function generateContent(systemPrompt: string, userPrompt: string, 
 }): Promise<string> {
   const ai = getAI();
   const response = await ai.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: DEFAULT_MODEL,
     max_tokens: options?.maxTokens || 4096,
     temperature: options?.temperature ?? 0.7,
     system: systemPrompt,

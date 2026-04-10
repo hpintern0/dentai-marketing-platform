@@ -8,7 +8,6 @@ const createClientSchema = z.object({
   city: z.string().optional(),
   state: z.string().optional(),
   instagram_handle: z.string().optional(),
-  youtube_channel: z.string().optional(),
   cro_number: z.string().optional(),
   tone: z.string().optional(),
   color_palette: z.record(z.unknown()).optional(),
@@ -35,7 +34,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ data });
+    return NextResponse.json(data);
   } catch (err) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
@@ -64,7 +63,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ data }, { status: 201 });
+    return NextResponse.json(data, { status: 201 });
   } catch (err) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }

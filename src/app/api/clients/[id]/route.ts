@@ -8,7 +8,6 @@ const updateClientSchema = z.object({
   city: z.string().optional(),
   state: z.string().optional(),
   instagram_handle: z.string().optional(),
-  youtube_channel: z.string().optional(),
   cro_number: z.string().optional(),
   tone: z.string().optional(),
   color_palette: z.record(z.unknown()).optional(),
@@ -40,7 +39,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       .eq('client_id', id)
       .order('created_at', { ascending: false });
 
-    return NextResponse.json({ data: { ...client, campaigns: campaigns ?? [] } });
+    return NextResponse.json({ ...client, campaigns: campaigns ?? [] });
   } catch (err) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
@@ -71,7 +70,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ data });
+    return NextResponse.json(data);
   } catch (err) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
@@ -88,7 +87,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ message: 'Client deleted' });
+    return NextResponse.json({ success: true });
   } catch (err) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }

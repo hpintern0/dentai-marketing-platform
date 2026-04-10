@@ -36,10 +36,8 @@ export async function GET(request: NextRequest, context: RouteContext) {
       .order('scheduled_at', { ascending: true });
 
     return NextResponse.json({
-      data: {
-        ...campaign,
-        scheduled_posts: posts ?? [],
-      },
+      ...campaign,
+      scheduled_posts: posts ?? [],
     });
   } catch (err) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -71,7 +69,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ data });
+    return NextResponse.json(data);
   } catch (err) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }

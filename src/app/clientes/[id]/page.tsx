@@ -13,7 +13,6 @@ const mockClient = {
   city: 'Sao Paulo',
   state: 'SP',
   instagram: '@dr.ricardosilva',
-  youtube: '@dr.ricardosilva',
   cro: 'SP-123456',
   tone: 'Profissional e acolhedor. Usa linguagem acessivel para explicar procedimentos complexos, transmitindo confianca e empatia.',
   avatar: 'RS',
@@ -29,7 +28,7 @@ const mockClient = {
     { role: 'Corpo', family: 'Inter Regular' },
     { role: 'Destaque', family: 'Playfair Display' },
   ],
-  platforms: ['Instagram Feed', 'Instagram Reels', 'Instagram Stories', 'YouTube Shorts'],
+  platforms: ['Instagram Feed', 'Instagram Reels', 'Instagram Stories'],
   ctas: [
     'Agende sua avaliacao gratuita!',
     'Link na bio para mais informacoes',
@@ -76,7 +75,7 @@ const mockClient = {
       id: 'r3',
       name: 'Dental Hub',
       handle: '@dentalhub',
-      platform: 'YouTube',
+      platform: 'Instagram',
     },
   ],
 };

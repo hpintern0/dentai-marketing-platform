@@ -1,16 +1,31 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Sparkles } from 'lucide-react';
+import { signIn } from '@/lib/auth';
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    // TODO: Integrate with Supabase Auth
-    console.log('Login attempt:', { email });
+    setError('');
+    setLoading(true);
+
+    try {
+      await signIn(email, password);
+      router.push('/dashboard');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Erro ao fazer login';
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -34,6 +49,12 @@ export default function LoginPage() {
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-5">
+            {error && (
+              <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
+                {error}
+              </div>
+            )}
+
             {/* Email */}
             <div>
               <label
@@ -75,9 +96,10 @@ export default function LoginPage() {
             {/* Submit */}
             <button
               type="submit"
-              className="w-full rounded-lg bg-dental-blue-700 px-4 py-2.5 text-sm font-semibold text-white shadow transition hover:bg-dental-blue-600 focus:outline-none focus:ring-2 focus:ring-dental-blue-500/50"
+              disabled={loading}
+              className="w-full rounded-lg bg-dental-blue-700 px-4 py-2.5 text-sm font-semibold text-white shadow transition hover:bg-dental-blue-600 focus:outline-none focus:ring-2 focus:ring-dental-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Entrar
+              {loading ? 'Entrando...' : 'Entrar'}
             </button>
           </form>
 

@@ -1,4 +1,6 @@
 // CommonJS wrapper for AI functions used by pipeline agents
+const DEFAULT_MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-20250514';
+
 let Anthropic;
 
 function getAI() {
@@ -11,7 +13,7 @@ function getAI() {
 async function generateContent(systemPrompt, userPrompt, options = {}) {
   const ai = getAI();
   const response = await ai.messages.create({
-    model: options.model || 'claude-sonnet-4-20250514',
+    model: options.model || DEFAULT_MODEL,
     max_tokens: options.maxTokens || 4096,
     temperature: options.temperature ?? 0.7,
     system: systemPrompt,

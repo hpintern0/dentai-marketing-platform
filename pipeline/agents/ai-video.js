@@ -15,8 +15,8 @@ async function runVideoAd(job) {
 
   const { generateJSON } = require('../../src/lib/ai-cjs');
 
-  const platform = (platform_targets || []).includes('youtube_shorts') ? 'youtube_shorts' : 'instagram_reels';
-  const maxDuration = platform === 'youtube_shorts' ? 15 : 12;
+  const platform = 'instagram_reels';
+  const maxDuration = 12;
 
   const videoConcept = await generateJSON(
     `Você é um especialista em vídeos curtos para marketing odontológico (Reels/Shorts). Gere o conceito e scenes para um vídeo de ${maxDuration} segundos sobre "${procedure_focus}".

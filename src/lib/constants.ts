@@ -28,8 +28,6 @@ export const PLATFORM_OPTIONS = [
   { value: 'instagram_feed', label: 'Instagram Feed' },
   { value: 'instagram_reels', label: 'Instagram Reels' },
   { value: 'instagram_stories', label: 'Instagram Stories' },
-  { value: 'youtube_shorts', label: 'YouTube Shorts' },
-  { value: 'threads', label: 'Threads' },
 ] as const;
 
 export const CAMPAIGN_OBJECTIVES = [

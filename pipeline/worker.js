@@ -2,7 +2,7 @@
 
 const { Worker } = require('bullmq');
 const IORedis = require('ioredis');
-const { getHandler, listAgents } = require('./agents');
+const handlers = require('./agents');
 
 // ---------------------------------------------------------------------------
 // Configuration
@@ -35,10 +35,11 @@ function startWorker() {
     QUEUE_NAME,
     async (job) => {
       const agentName = job.name;
-      const handler = getHandler(agentName);
+      const handler = handlers[agentName];
 
       if (!handler) {
-        const msg = `No handler registered for agent "${agentName}". Known agents: ${listAgents().join(', ')}`;
+        const knownAgents = Object.keys(handlers);
+        const msg = `No handler registered for agent "${agentName}". Known agents: ${knownAgents.join(', ')}`;
         console.error(`[Worker] ${msg}`);
         throw new Error(msg);
       }
@@ -108,7 +109,7 @@ function startWorker() {
   });
 
   console.log(`[Worker] Listening on queue "${QUEUE_NAME}" — Redis: ${REDIS_URL.replace(/\/\/.*@/, '//***@')}`);
-  console.log(`[Worker] Registered agents: ${listAgents().join(', ')}`);
+  console.log(`[Worker] Registered agents: ${Object.keys(handlers).join(', ')}`);
 
   return worker;
 }

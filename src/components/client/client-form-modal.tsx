@@ -23,7 +23,6 @@ interface ClientFormData {
   city: string;
   state: string;
   instagram_handle: string;
-  youtube_channel: string;
   cro_number: string;
   tone: string;
   color_palette: ColorPalette & { accent2: string };
@@ -54,7 +53,6 @@ const EMPTY_FORM: ClientFormData = {
   city: '',
   state: '',
   instagram_handle: '',
-  youtube_channel: '',
   cro_number: '',
   tone: '',
   color_palette: {
@@ -80,7 +78,6 @@ function clientToForm(client: Client): ClientFormData {
     city: client.city,
     state: client.state,
     instagram_handle: client.instagram_handle,
-    youtube_channel: client.youtube_channel ?? '',
     cro_number: client.cro_number,
     tone: client.tone,
     color_palette: {
@@ -348,12 +345,6 @@ export function ClientFormModal({
               placeholder="@seuinstagram"
               value={form.instagram_handle}
               onChange={(e) => set('instagram_handle', e.target.value)}
-            />
-            <Input
-              label="Canal YouTube"
-              placeholder="URL ou @canal"
-              value={form.youtube_channel}
-              onChange={(e) => set('youtube_channel', e.target.value)}
             />
           </div>
         </fieldset>

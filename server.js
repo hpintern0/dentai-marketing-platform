@@ -39,7 +39,18 @@ app.prepare().then(() => {
 
     socket.on('pipeline:retry', async (data) => {
       console.log(`[Socket.IO] Retry requested: ${data.agent_name} for campaign ${data.campaign_id}`);
-      // TODO: Queue retry job via BullMQ
+      try {
+        const { enqueueJob } = require('./pipeline/queue');
+        await enqueueJob(data.agent_name, {
+          task_name: data.task_name || `retry_${data.campaign_id}_${Date.now()}`,
+          campaign_id: data.campaign_id,
+          ...(data.payload || {}),
+        });
+        socket.emit('pipeline:retry:ack', { status: 'queued', agent_name: data.agent_name });
+      } catch (err) {
+        console.error('[Socket.IO] Failed to queue retry job:', err.message);
+        socket.emit('pipeline:retry:ack', { status: 'error', error: err.message });
+      }
     });
 
     socket.on('disconnect', () => {

@@ -68,7 +68,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: updateError.message }, { status: 500 });
     }
 
-    // TODO: Enqueue jobs to your worker/queue system here
+    // Enqueue pipeline jobs to BullMQ
+    try {
+      const { enqueuePipeline } = require('@/../pipeline/queue');
+      await enqueuePipeline({
+        task_name: `campaign_${campaign_id}_${Date.now()}`,
+        client_id: campaign.client_id,
+        campaign_id,
+        steps,
+        ...options,
+      });
+    } catch (enqueueErr: any) {
+      console.error('[Pipeline API] Failed to enqueue pipeline:', enqueueErr?.message);
+      // Update campaign status back to draft on queue failure
+      await supabase
+        .from('campaigns')
+        .update({ status: 'draft', updated_at: new Date().toISOString() })
+        .eq('id', campaign_id);
+      return NextResponse.json({ error: 'Failed to enqueue pipeline jobs' }, { status: 500 });
+    }
 
     return NextResponse.json({
       message: 'Pipeline started',

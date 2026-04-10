@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Search,
@@ -10,108 +10,120 @@ import {
   Megaphone,
   Filter,
   ChevronRight,
+  Loader2,
+  AlertCircle,
 } from 'lucide-react';
+import { ClientFormModal } from '@/components/client/client-form-modal';
 
-const clients = [
-  {
-    id: 1,
-    name: 'Dr. Ricardo Silva',
-    specialty: 'Implantodontia',
-    city: 'Sao Paulo, SP',
-    instagram: '@dr.ricardosilva',
-    activeCampaigns: 3,
-    avatar: 'RS',
-  },
-  {
-    id: 2,
-    name: 'Clinica Sorriso',
-    specialty: 'Odontologia Estetica',
-    city: 'Rio de Janeiro, RJ',
-    instagram: '@clinicasorriso',
-    activeCampaigns: 2,
-    avatar: 'CS',
-  },
-  {
-    id: 3,
-    name: 'Dra. Camila Mendes',
-    specialty: 'Ortodontia',
-    city: 'Belo Horizonte, MG',
-    instagram: '@dra.camilamendes',
-    activeCampaigns: 1,
-    avatar: 'CM',
-  },
-  {
-    id: 4,
-    name: 'Dr. Fernando Oliveira',
-    specialty: 'Facetas e Lentes',
-    city: 'Curitiba, PR',
-    instagram: '@dr.fernandooliv',
-    activeCampaigns: 2,
-    avatar: 'FO',
-  },
-  {
-    id: 5,
-    name: 'Clinica OdontoPlus',
-    specialty: 'Protese Dentaria',
-    city: 'Brasilia, DF',
-    instagram: '@odontoplus',
-    activeCampaigns: 0,
-    avatar: 'OP',
-  },
-  {
-    id: 6,
-    name: 'Dr. Paulo Costa',
-    specialty: 'Periodontia',
-    city: 'Porto Alegre, RS',
-    instagram: '@dr.paulocosta',
-    activeCampaigns: 1,
-    avatar: 'PC',
-  },
-  {
-    id: 7,
-    name: 'Dra. Ana Beatriz',
-    specialty: 'Odontopediatria',
-    city: 'Salvador, BA',
-    instagram: '@dra.anabeatriz',
-    activeCampaigns: 2,
-    avatar: 'AB',
-  },
-  {
-    id: 8,
-    name: 'Clinica DentVida',
-    specialty: 'Clinica Geral',
-    city: 'Recife, PE',
-    instagram: '@clinicadentvida',
-    activeCampaigns: 1,
-    avatar: 'DV',
-  },
-];
+interface ClientItem {
+  id: string;
+  name: string;
+  specialty: string;
+  city: string;
+  state: string;
+  instagram_handle: string;
+  tone: string;
+  active_platforms: string[];
+  created_at: string;
+}
 
-const specialties = [
-  'Todas',
-  'Implantodontia',
-  'Odontologia Estetica',
-  'Ortodontia',
-  'Facetas e Lentes',
-  'Protese Dentaria',
-  'Periodontia',
-  'Odontopediatria',
-  'Clinica Geral',
-];
+function getInitials(name: string): string {
+  return name
+    .split(' ')
+    .filter((w) => w.length > 2 || w[0] === w[0].toUpperCase())
+    .map((w) => w[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+}
 
 export default function ClientesPage() {
+  const [clients, setClients] = useState<ClientItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [selectedSpecialty, setSelectedSpecialty] = useState('Todas');
+  const [showModal, setShowModal] = useState(false);
+
+  const fetchClients = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/clients');
+      if (!res.ok) throw new Error('Erro ao carregar clientes');
+      const data = await res.json();
+      setClients(Array.isArray(data) ? data : []);
+    } catch (err: any) {
+      setError(err.message ?? 'Erro inesperado');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchClients();
+  }, []);
+
+  const specialties = [
+    'Todas',
+    ...Array.from(new Set(clients.map((c) => c.specialty).filter(Boolean))),
+  ];
 
   const filtered = clients.filter((c) => {
     const matchSearch =
       c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.instagram.toLowerCase().includes(search.toLowerCase()) ||
-      c.city.toLowerCase().includes(search.toLowerCase());
+      (c.instagram_handle ?? '').toLowerCase().includes(search.toLowerCase()) ||
+      (`${c.city}, ${c.state}`).toLowerCase().includes(search.toLowerCase());
     const matchSpecialty =
       selectedSpecialty === 'Todas' || c.specialty === selectedSpecialty;
     return matchSearch && matchSpecialty;
   });
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Clientes</h1>
+            <p className="mt-1 text-sm text-gray-500">Carregando...</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="card animate-pulse">
+              <div className="flex items-start gap-3">
+                <div className="h-11 w-11 rounded-full bg-gray-200" />
+                <div className="flex-1">
+                  <div className="h-4 w-24 rounded bg-gray-200" />
+                  <div className="mt-2 h-3 w-20 rounded bg-gray-200" />
+                </div>
+              </div>
+              <div className="mt-4 space-y-2">
+                <div className="h-3 w-28 rounded bg-gray-100" />
+                <div className="h-3 w-24 rounded bg-gray-100" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Clientes</h1>
+        </div>
+        <div className="card border-red-200 bg-red-50">
+          <div className="flex items-center gap-2 text-red-700">
+            <AlertCircle className="h-5 w-5" />
+            <p className="text-sm font-medium">{error}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -123,7 +135,7 @@ export default function ClientesPage() {
             {clients.length} clientes cadastrados
           </p>
         </div>
-        <button className="btn-primary gap-2">
+        <button className="btn-primary gap-2" onClick={() => setShowModal(true)}>
           <Plus className="h-4 w-4" />
           Novo Cliente
         </button>
@@ -169,7 +181,7 @@ export default function ClientesPage() {
           >
             <div className="flex items-start gap-3">
               <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-dental-blue-500 to-dental-teal-500 text-sm font-bold text-white">
-                {client.avatar}
+                {getInitials(client.name)}
               </div>
               <div className="min-w-0 flex-1">
                 <h3 className="truncate text-sm font-semibold text-gray-900 group-hover:text-dental-blue">
@@ -183,26 +195,34 @@ export default function ClientesPage() {
             <div className="mt-4 space-y-2">
               <div className="flex items-center gap-2 text-xs text-gray-500">
                 <MapPin className="h-3.5 w-3.5" />
-                {client.city}
+                {client.city}{client.state ? `, ${client.state}` : ''}
               </div>
-              <div className="flex items-center gap-2 text-xs text-gray-500">
-                <Instagram className="h-3.5 w-3.5" />
-                {client.instagram}
-              </div>
-              <div className="flex items-center gap-2 text-xs text-gray-500">
-                <Megaphone className="h-3.5 w-3.5" />
-                {client.activeCampaigns} campanha{client.activeCampaigns !== 1 ? 's' : ''} ativa{client.activeCampaigns !== 1 ? 's' : ''}
-              </div>
+              {client.instagram_handle && (
+                <div className="flex items-center gap-2 text-xs text-gray-500">
+                  <Instagram className="h-3.5 w-3.5" />
+                  {client.instagram_handle}
+                </div>
+              )}
             </div>
           </Link>
         ))}
       </div>
 
-      {filtered.length === 0 && (
+      {filtered.length === 0 && !loading && (
         <div className="py-12 text-center">
           <p className="text-sm text-gray-500">Nenhum cliente encontrado.</p>
         </div>
       )}
+
+      {/* Client Form Modal */}
+      <ClientFormModal
+        open={showModal}
+        onClose={() => setShowModal(false)}
+        onSuccess={() => {
+          setShowModal(false);
+          fetchClients();
+        }}
+      />
     </div>
   );
 }

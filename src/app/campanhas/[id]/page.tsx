@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
 import {
   ArrowLeft,
   CheckCircle2,
@@ -17,153 +18,171 @@ import {
   Layers,
   FileCheck,
   Shield,
+  AlertCircle,
 } from 'lucide-react';
 import Link from 'next/link';
 
-const campaign = {
-  id: 1,
-  name: 'Implantes Dentarios - Campanha Abril',
-  client: 'Dr. Ricardo Silva',
-  status: 'review',
-  createdAt: '2026-04-08',
-};
-
-const timeline = [
-  {
-    step: 'Brief recebido',
-    status: 'complete',
-    time: '10:00',
-    detail: 'Brief parseado e validado',
-  },
-  {
-    step: 'Pesquisa de tendencias',
-    status: 'complete',
-    time: '10:02',
-    detail: '12 tendencias identificadas',
-  },
-  {
-    step: 'Geracao de imagens',
-    status: 'complete',
-    time: '10:08',
-    detail: '6 imagens geradas com DALL-E',
-  },
-  {
-    step: 'Criacao de carrossel',
-    status: 'complete',
-    time: '10:12',
-    detail: 'Carrossel de 5 slides montado',
-  },
-  {
-    step: 'Criacao de video',
-    status: 'complete',
-    time: '10:18',
-    detail: 'Reels de 30s renderizado',
-  },
-  {
-    step: 'Redacao de copy',
-    status: 'complete',
-    time: '10:20',
-    detail: '3 variacoes de copy criadas',
-  },
-  {
-    step: 'Revisao de qualidade',
-    status: 'running',
-    time: '10:22',
-    detail: 'Verificando conformidade...',
-  },
-  {
-    step: 'Aprovacao do cliente',
-    status: 'pending',
-    time: '-',
-    detail: 'Aguardando revisao',
-  },
-];
+interface CampaignData {
+  id: string;
+  name: string;
+  status: string;
+  created_at: string;
+  raw_brief?: string;
+  parsed_brief?: any;
+  pipeline_status?: any;
+  clients?: { id: string; name: string; specialty?: string };
+  scheduled_posts?: any[];
+}
 
 const tabs = [
+  { id: 'overview', label: 'Visao Geral', icon: FileCheck },
   { id: 'criativos', label: 'Criativos', icon: Image },
   { id: 'carrossel', label: 'Carrossel', icon: Layers },
   { id: 'video', label: 'Video', icon: Video },
   { id: 'copy', label: 'Copy', icon: Type },
-  { id: 'review', label: 'Review', icon: FileCheck },
   { id: 'aprovacao', label: 'Aprovacao', icon: Shield },
 ];
-
-interface ContentPiece {
-  id: number;
-  title: string;
-  type: string;
-  status: 'pending' | 'approved' | 'rejected';
-  preview: string;
-}
-
-const contentPieces: Record<string, ContentPiece[]> = {
-  criativos: [
-    { id: 1, title: 'Imagem principal - Sorriso', type: 'image', status: 'approved', preview: 'Imagem de alta qualidade mostrando sorriso com implante' },
-    { id: 2, title: 'Imagem - Processo', type: 'image', status: 'approved', preview: 'Infografico do processo de implante' },
-    { id: 3, title: 'Imagem - Consultorio', type: 'image', status: 'pending', preview: 'Foto do consultorio com tecnologia' },
-  ],
-  carrossel: [
-    { id: 4, title: 'Slide 1 - Capa', type: 'slide', status: 'approved', preview: '"5 Vantagens do Implante Dentario" - Titulo com design moderno' },
-    { id: 5, title: 'Slide 2 - Vantagem 1', type: 'slide', status: 'approved', preview: 'Mastigacao natural - Texto com icone ilustrativo' },
-    { id: 6, title: 'Slide 3 - Vantagem 2', type: 'slide', status: 'pending', preview: 'Durabilidade - Comparativo com outras opcoes' },
-    { id: 7, title: 'Slide 4 - Vantagem 3', type: 'slide', status: 'pending', preview: 'Estetica - Antes e depois' },
-    { id: 8, title: 'Slide 5 - CTA', type: 'slide', status: 'pending', preview: 'Agende sua avaliacao - Link na bio' },
-  ],
-  video: [
-    { id: 9, title: 'Reels - Antes e Depois', type: 'video', status: 'pending', preview: 'Video de 30s com transicao before/after e musica trending' },
-  ],
-  copy: [
-    { id: 10, title: 'Caption - Carrossel', type: 'text', status: 'approved', preview: 'Voce sabia que o implante dentario tem taxa de sucesso de 98%? Descubra as 5 principais vantagens...' },
-    { id: 11, title: 'Caption - Reels', type: 'text', status: 'pending', preview: 'Transformacao real! Veja como o implante devolveu o sorriso deste paciente...' },
-    { id: 12, title: 'Caption - Stories', type: 'text', status: 'pending', preview: 'Swipe up para agendar sua avaliacao gratuita! Link na bio...' },
-  ],
-  review: [
-    { id: 13, title: 'Checklist de qualidade', type: 'review', status: 'pending', preview: 'Verificacao de conformidade com CFO, ortografia, tom de voz e identidade visual' },
-  ],
-  aprovacao: [],
-};
 
 const statusConfig: Record<string, { icon: typeof CheckCircle2; class: string }> = {
   complete: { icon: CheckCircle2, class: 'text-green-500' },
   running: { icon: Loader2, class: 'text-dental-blue animate-spin' },
   pending: { icon: Clock, class: 'text-gray-300' },
+  queued: { icon: Clock, class: 'text-gray-300' },
   failed: { icon: XCircle, class: 'text-red-500' },
-};
-
-const contentStatusBadge: Record<string, { label: string; class: string }> = {
-  pending: { label: 'Pendente', class: 'badge-warning' },
-  approved: { label: 'Aprovado', class: 'badge-success' },
-  rejected: { label: 'Rejeitado', class: 'badge-error' },
+  skipped: { icon: Clock, class: 'text-gray-300' },
 };
 
 const campaignStatusBadge: Record<string, { label: string; class: string }> = {
   draft: { label: 'Rascunho', class: 'badge-neutral' },
+  briefing: { label: 'Briefing', class: 'badge-info' },
   generating: { label: 'Gerando', class: 'badge-info' },
-  review: { label: 'Em revisao', class: 'badge-warning' },
+  reviewing: { label: 'Em revisao', class: 'badge-warning' },
   approved: { label: 'Aprovado', class: 'badge-success' },
+  scheduled: { label: 'Agendado', class: 'badge-info' },
   published: { label: 'Publicado', class: 'badge-success' },
+  failed: { label: 'Falhou', class: 'badge-error' },
+};
+
+const AGENT_LABELS: Record<string, string> = {
+  dental_research_agent: 'Pesquisa de tendencias',
+  dental_intelligence_agent: 'Inteligencia dental',
+  ad_creative_designer: 'Design de criativos',
+  carousel_agent: 'Geracao de carrossel',
+  video_ad_specialist: 'Criacao de video',
+  copywriter_agent: 'Redacao de copy',
+  review_orchestrator: 'Orquestracao de review',
+  cfo_compliance_reviewer: 'Revisao CFO',
+  copy_reviewer: 'Revisao de copy',
+  visual_reviewer: 'Revisao visual',
+  dental_expert_reviewer: 'Revisao especialista',
+  issue_consolidator: 'Consolidacao de issues',
+  correction_agent: 'Correcoes',
+  distribution_agent: 'Distribuicao',
 };
 
 export default function CampanhaDetailPage() {
-  const [activeTab, setActiveTab] = useState('criativos');
-  const [pieces, setPieces] = useState(contentPieces);
+  const params = useParams();
+  const campaignId = params.id as string;
 
-  const updateStatus = (tabId: string, pieceId: number, status: 'approved' | 'rejected') => {
-    setPieces((prev) => ({
-      ...prev,
-      [tabId]: prev[tabId].map((p) =>
-        p.id === pieceId ? { ...p, status } : p
-      ),
-    }));
+  const [campaign, setCampaign] = useState<CampaignData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState('overview');
+
+  useEffect(() => {
+    async function fetchCampaign() {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch(`/api/campaigns/${campaignId}`);
+        if (!res.ok) throw new Error('Campanha nao encontrada');
+        const json = await res.json();
+        setCampaign(json.data ?? json);
+      } catch (err: any) {
+        setError(err.message ?? 'Erro ao carregar campanha');
+      } finally {
+        setLoading(false);
+      }
+    }
+    if (campaignId) fetchCampaign();
+  }, [campaignId]);
+
+  const handleApprove = async () => {
+    try {
+      const res = await fetch(`/api/campaigns/${campaignId}/approve`, { method: 'POST' });
+      if (res.ok) {
+        setCampaign((prev) => prev ? { ...prev, status: 'approved' } : prev);
+      }
+    } catch {
+      // silently fail
+    }
   };
 
-  const allApproved = Object.values(pieces)
-    .flat()
-    .filter((p) => p.type !== 'review')
-    .every((p) => p.status === 'approved');
+  const handlePublish = async () => {
+    try {
+      const res = await fetch(`/api/campaigns/${campaignId}/publish`, { method: 'POST' });
+      if (res.ok) {
+        setCampaign((prev) => prev ? { ...prev, status: 'published' } : prev);
+      }
+    } catch {
+      // silently fail
+    }
+  };
 
-  const currentPieces = pieces[activeTab] || [];
-  const badge = campaignStatusBadge[campaign.status];
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <Link
+            href="/campanhas"
+            className="mb-4 inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Voltar para Campanhas
+          </Link>
+        </div>
+        <div className="card animate-pulse">
+          <div className="h-6 w-64 rounded bg-gray-200" />
+          <div className="mt-3 h-4 w-40 rounded bg-gray-200" />
+        </div>
+        <div className="card animate-pulse">
+          <div className="h-5 w-48 rounded bg-gray-200 mb-4" />
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="flex items-center gap-3 mb-3">
+              <div className="h-5 w-5 rounded-full bg-gray-200" />
+              <div className="h-4 w-40 rounded bg-gray-200" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !campaign) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <Link
+            href="/campanhas"
+            className="mb-4 inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Voltar para Campanhas
+          </Link>
+        </div>
+        <div className="card border-red-200 bg-red-50">
+          <div className="flex items-center gap-2 text-red-700">
+            <AlertCircle className="h-5 w-5" />
+            <p className="text-sm font-medium">{error ?? 'Campanha nao encontrada'}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const badge = campaignStatusBadge[campaign.status] ?? campaignStatusBadge.draft;
+  const pipelineAgents: any[] = campaign.pipeline_status?.agents ?? [];
+  const parsedBrief = campaign.parsed_brief;
 
   return (
     <div className="space-y-6">
@@ -185,55 +204,115 @@ export default function CampanhaDetailPage() {
               <span className={badge.class}>{badge.label}</span>
             </div>
             <p className="mt-1 text-sm text-gray-500">
-              {campaign.client} &middot; Criada em {campaign.createdAt}
+              {campaign.clients?.name ?? 'Cliente'} &middot; Criada em{' '}
+              {new Date(campaign.created_at).toLocaleDateString('pt-BR')}
             </p>
           </div>
-          {allApproved && (
-            <button className="btn-primary gap-2 bg-dental-teal hover:bg-dental-teal-700">
-              <Send className="h-4 w-4" />
-              Publicar
-            </button>
-          )}
+          <div className="flex gap-2">
+            {campaign.status === 'reviewing' && (
+              <button
+                onClick={handleApprove}
+                className="btn-primary gap-2"
+              >
+                <CheckCircle2 className="h-4 w-4" />
+                Aprovar
+              </button>
+            )}
+            {campaign.status === 'approved' && (
+              <button
+                onClick={handlePublish}
+                className="btn-primary gap-2 bg-dental-teal hover:bg-dental-teal-700"
+              >
+                <Send className="h-4 w-4" />
+                Publicar
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Timeline */}
-      <div className="card">
-        <h2 className="mb-4 text-lg font-semibold text-gray-900">
-          Timeline de Execucao
-        </h2>
-        <div className="space-y-3">
-          {timeline.map((step, idx) => {
-            const config = statusConfig[step.status];
-            const StepIcon = config.icon;
-            return (
-              <div key={idx} className="flex items-start gap-3">
-                <div className="relative flex flex-col items-center">
-                  <StepIcon className={`h-5 w-5 ${config.class}`} />
-                  {idx < timeline.length - 1 && (
-                    <div
-                      className={`mt-1 h-8 w-px ${
-                        step.status === 'complete'
-                          ? 'bg-green-300'
-                          : 'bg-gray-200'
-                      }`}
-                    />
-                  )}
-                </div>
-                <div className="flex-1 pb-3">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-gray-900">
-                      {step.step}
-                    </p>
-                    <span className="text-xs text-gray-400">{step.time}</span>
+      {/* Pipeline Timeline */}
+      {pipelineAgents.length > 0 && (
+        <div className="card">
+          <h2 className="mb-4 text-lg font-semibold text-gray-900">
+            Timeline de Execucao
+          </h2>
+          <div className="space-y-3">
+            {pipelineAgents.map((agent: any, idx: number) => {
+              const agentStatus = agent.status ?? 'queued';
+              const config = statusConfig[agentStatus] ?? statusConfig.queued;
+              const StepIcon = config.icon;
+              const label = AGENT_LABELS[agent.job_name] ?? agent.job_name;
+              return (
+                <div key={idx} className="flex items-start gap-3">
+                  <div className="relative flex flex-col items-center">
+                    <StepIcon className={`h-5 w-5 ${config.class}`} />
+                    {idx < pipelineAgents.length - 1 && (
+                      <div
+                        className={`mt-1 h-8 w-px ${
+                          agentStatus === 'complete'
+                            ? 'bg-green-300'
+                            : 'bg-gray-200'
+                        }`}
+                      />
+                    )}
                   </div>
-                  <p className="text-xs text-gray-500">{step.detail}</p>
+                  <div className="flex-1 pb-3">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium text-gray-900">
+                        {label}
+                      </p>
+                      {agent.duration_ms != null && (
+                        <span className="text-xs text-gray-400">
+                          {(agent.duration_ms / 1000).toFixed(1)}s
+                        </span>
+                      )}
+                    </div>
+                    {agent.notes && (
+                      <p className="text-xs text-gray-500">{agent.notes}</p>
+                    )}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Brief info if no pipeline data */}
+      {pipelineAgents.length === 0 && parsedBrief && (
+        <div className="card">
+          <h2 className="mb-4 text-lg font-semibold text-gray-900">Brief</h2>
+          <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
+            {parsedBrief.procedure_focus && (
+              <div>
+                <span className="font-medium text-gray-700">Procedimento:</span>{' '}
+                <span className="text-gray-600">{parsedBrief.procedure_focus}</span>
+              </div>
+            )}
+            {parsedBrief.campaign_objective && (
+              <div>
+                <span className="font-medium text-gray-700">Objetivo:</span>{' '}
+                <span className="text-gray-600">{parsedBrief.campaign_objective}</span>
+              </div>
+            )}
+            {parsedBrief.tone && (
+              <div>
+                <span className="font-medium text-gray-700">Tom:</span>{' '}
+                <span className="text-gray-600">{parsedBrief.tone}</span>
+              </div>
+            )}
+            {parsedBrief.format && (
+              <div>
+                <span className="font-medium text-gray-700">Formatos:</span>{' '}
+                <span className="text-gray-600">
+                  {Array.isArray(parsedBrief.format) ? parsedBrief.format.join(', ') : parsedBrief.format}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="border-b border-gray-200">
@@ -260,129 +339,101 @@ export default function CampanhaDetailPage() {
       </div>
 
       {/* Tab Content */}
-      {activeTab === 'aprovacao' ? (
+      {activeTab === 'overview' && (
+        <div className="card">
+          <h3 className="mb-4 text-lg font-semibold text-gray-900">
+            Informacoes da Campanha
+          </h3>
+          <div className="space-y-4 text-sm">
+            <div>
+              <span className="font-medium text-gray-700">Status:</span>{' '}
+              <span className={badge.class}>{badge.label}</span>
+            </div>
+            <div>
+              <span className="font-medium text-gray-700">Cliente:</span>{' '}
+              <span className="text-gray-600">{campaign.clients?.name ?? '-'}</span>
+            </div>
+            <div>
+              <span className="font-medium text-gray-700">Criada em:</span>{' '}
+              <span className="text-gray-600">{new Date(campaign.created_at).toLocaleDateString('pt-BR')}</span>
+            </div>
+            {campaign.raw_brief && (
+              <div>
+                <span className="font-medium text-gray-700">Brief:</span>{' '}
+                <p className="mt-1 text-gray-600 whitespace-pre-wrap rounded-lg bg-gray-50 p-3 border border-gray-100">
+                  {campaign.raw_brief}
+                </p>
+              </div>
+            )}
+            {campaign.scheduled_posts && campaign.scheduled_posts.length > 0 && (
+              <div>
+                <span className="font-medium text-gray-700">Posts Agendados:</span>{' '}
+                <span className="text-gray-600">{campaign.scheduled_posts.length} posts</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'aprovacao' && (
         <div className="card">
           <h3 className="mb-4 text-lg font-semibold text-gray-900">
             Resumo de Aprovacao
           </h3>
-          <div className="space-y-3">
-            {Object.entries(pieces).map(([tabId, tabPieces]) =>
-              tabPieces.map((piece) => {
-                const pBadge = contentStatusBadge[piece.status];
-                return (
-                  <div
-                    key={piece.id}
-                    className="flex items-center justify-between rounded-lg border border-gray-100 p-3"
-                  >
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">
-                        {piece.title}
-                      </p>
-                      <p className="text-xs text-gray-500 capitalize">
-                        {tabId}
-                      </p>
-                    </div>
-                    <span className={pBadge.class}>{pBadge.label}</span>
-                  </div>
-                );
-              })
-            )}
-          </div>
-          {allApproved ? (
-            <div className="mt-6 rounded-lg bg-green-50 border border-green-200 p-4 text-center">
+          {campaign.status === 'approved' || campaign.status === 'published' ? (
+            <div className="rounded-lg bg-green-50 border border-green-200 p-4 text-center">
               <CheckCircle2 className="mx-auto h-8 w-8 text-green-500" />
               <p className="mt-2 text-sm font-medium text-green-800">
-                Todos os conteudos foram aprovados!
+                Campanha {campaign.status === 'published' ? 'publicada' : 'aprovada'}!
               </p>
-              <button className="mt-3 btn-primary bg-dental-teal hover:bg-dental-teal-700 gap-2">
-                <Send className="h-4 w-4" />
-                Publicar Campanha
-              </button>
+            </div>
+          ) : campaign.status === 'reviewing' ? (
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600">
+                Esta campanha esta aguardando sua revisao e aprovacao.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleApprove}
+                  className="btn-primary gap-2"
+                >
+                  <CheckCircle2 className="h-4 w-4" />
+                  Aprovar Campanha
+                </button>
+              </div>
             </div>
           ) : (
-            <p className="mt-4 text-center text-sm text-gray-500">
-              Aprove todos os conteudos nas abas acima para habilitar a publicacao.
+            <p className="text-center text-sm text-gray-500 py-6">
+              Aguardando geracao de conteudo para revisao.
             </p>
           )}
         </div>
-      ) : (
-        <div className="space-y-4">
-          {currentPieces.map((piece) => {
-            const pBadge = contentStatusBadge[piece.status];
-            return (
-              <div key={piece.id} className="card">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-sm font-semibold text-gray-900">
-                        {piece.title}
-                      </h3>
-                      <span className={pBadge.class}>{pBadge.label}</span>
-                    </div>
-                    {/* Preview Area */}
-                    <div className="mt-3 rounded-lg border border-gray-100 bg-gray-50 p-4">
-                      {piece.type === 'image' || piece.type === 'slide' ? (
-                        <div className="flex items-center gap-4">
-                          <div className="flex h-24 w-24 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-dental-blue-100 to-dental-teal-100">
-                            <Image className="h-8 w-8 text-dental-blue-300" />
-                          </div>
-                          <p className="text-sm text-gray-600">
-                            {piece.preview}
-                          </p>
-                        </div>
-                      ) : piece.type === 'video' ? (
-                        <div className="flex items-center gap-4">
-                          <div className="flex h-24 w-40 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-dental-blue-100 to-dental-teal-100">
-                            <Video className="h-8 w-8 text-dental-blue-300" />
-                          </div>
-                          <p className="text-sm text-gray-600">
-                            {piece.preview}
-                          </p>
-                        </div>
-                      ) : (
-                        <p className="text-sm text-gray-600 italic">
-                          &ldquo;{piece.preview}&rdquo;
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                {/* Actions */}
-                {piece.status === 'pending' && (
-                  <div className="mt-4 flex items-center gap-2 border-t border-gray-100 pt-4">
-                    <button className="btn-secondary gap-1.5 text-xs">
-                      <Eye className="h-3.5 w-3.5" />
-                      Preview
-                    </button>
-                    <div className="flex-1" />
-                    <button
-                      onClick={() =>
-                        updateStatus(activeTab, piece.id, 'rejected')
-                      }
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 transition-colors"
-                    >
-                      <ThumbsDown className="h-3.5 w-3.5" />
-                      Rejeitar
-                    </button>
-                    <button
-                      onClick={() =>
-                        updateStatus(activeTab, piece.id, 'approved')
-                      }
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-green-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-700 transition-colors"
-                    >
-                      <ThumbsUp className="h-3.5 w-3.5" />
-                      Aprovar
-                    </button>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-          {currentPieces.length === 0 && (
-            <div className="py-12 text-center text-sm text-gray-500">
-              Nenhum conteudo nesta secao ainda.
+      )}
+
+      {['criativos', 'carrossel', 'video', 'copy'].includes(activeTab) && (
+        <div className="card">
+          <div className="py-12 text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
+              {activeTab === 'criativos' && <Image className="h-8 w-8 text-gray-400" />}
+              {activeTab === 'carrossel' && <Layers className="h-8 w-8 text-gray-400" />}
+              {activeTab === 'video' && <Video className="h-8 w-8 text-gray-400" />}
+              {activeTab === 'copy' && <Type className="h-8 w-8 text-gray-400" />}
             </div>
-          )}
+            <p className="text-sm font-medium text-gray-900">
+              {campaign.status === 'generating'
+                ? 'Gerando conteudo...'
+                : campaign.status === 'draft' || campaign.status === 'briefing'
+                ? 'Aguardando geracao...'
+                : 'Conteudo gerado'}
+            </p>
+            <p className="mt-1 text-xs text-gray-500">
+              {campaign.status === 'generating'
+                ? 'O pipeline esta processando esta secao. Aguarde.'
+                : campaign.status === 'draft' || campaign.status === 'briefing'
+                ? 'Inicie o pipeline para gerar o conteudo desta secao.'
+                : 'Os arquivos gerados estao disponiveis no armazenamento da campanha.'}
+            </p>
+          </div>
         </div>
       )}
     </div>

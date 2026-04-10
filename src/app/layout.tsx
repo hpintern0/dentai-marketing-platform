@@ -3,9 +3,11 @@
 import './globals.css';
 import { Inter } from 'next/font/google';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { ToastProvider } from '@/components/ui/toast';
+import { useAuth } from '@/hooks/use-auth';
+import { signOut } from '@/lib/auth';
 import {
   LayoutDashboard,
   Users,
@@ -17,6 +19,7 @@ import {
   Menu,
   X,
   Sparkles,
+  LogOut,
 } from 'lucide-react';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -37,7 +40,44 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { user } = useAuth();
+
+  const isLoginPage = pathname === '/login';
+
+  async function handleSignOut() {
+    try {
+      await signOut();
+      router.push('/login');
+    } catch {
+      // Force redirect even if signOut fails
+      router.push('/login');
+    }
+  }
+
+  // Login page renders without sidebar/chrome
+  if (isLoginPage) {
+    return (
+      <html lang="pt-BR">
+        <head>
+          <title>DentAI — Marketing Odontológico com IA</title>
+          <meta name="description" content="Plataforma de automação de conteúdo com IA para agências de marketing odontológico" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+          <meta property="og:title" content="DentAI Marketing Platform" />
+          <meta property="og:description" content="Sistema completo de automação de conteúdo de marketing para clínicas odontológicas" />
+          <meta property="og:type" content="website" />
+          <meta name="theme-color" content="#1e3a5f" />
+        </head>
+        <body className={inter.className}>
+          <ToastProvider>
+            {children}
+          </ToastProvider>
+        </body>
+      </html>
+    );
+  }
 
   return (
     <html lang="pt-BR">
@@ -111,15 +151,27 @@ export default function RootLayout({
               })}
             </nav>
 
-            {/* Footer */}
+            {/* User info & Logout */}
             <div className="border-t border-white/10 p-4">
               <div className="rounded-lg bg-white/10 p-3">
-                <p className="text-xs font-medium text-white/90">
-                  Pipeline ativo
-                </p>
-                <p className="mt-1 text-xs text-dental-teal-300">
-                  3 campanhas em execucao
-                </p>
+                {user ? (
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-xs font-medium text-white/90">
+                        {user.email}
+                      </p>
+                    </div>
+                    <button
+                      onClick={handleSignOut}
+                      title="Sair"
+                      className="flex-shrink-0 rounded-md p-1.5 text-white/60 transition hover:bg-white/10 hover:text-white"
+                    >
+                      <LogOut className="h-4 w-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <p className="text-xs text-white/50">Carregando...</p>
+                )}
               </div>
             </div>
           </aside>
@@ -136,11 +188,23 @@ export default function RootLayout({
               </button>
               <div className="flex-1" />
               <div className="flex items-center gap-3">
+                {user && (
+                  <span className="hidden text-sm text-gray-600 sm:inline">
+                    {user.email}
+                  </span>
+                )}
                 <div className="h-8 w-8 rounded-full bg-dental-blue-100 flex items-center justify-center">
                   <span className="text-xs font-semibold text-dental-blue-700">
-                    DT
+                    {user?.email?.substring(0, 2).toUpperCase() || '...'}
                   </span>
                 </div>
+                <button
+                  onClick={handleSignOut}
+                  title="Sair"
+                  className="rounded-md p-1.5 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700"
+                >
+                  <LogOut className="h-4 w-4" />
+                </button>
               </div>
             </header>
 

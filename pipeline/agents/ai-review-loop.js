@@ -156,7 +156,7 @@ Gere JSON:
       originalPiece.content = corrected;
 
       // Save corrected file
-      if (piece.piece_id.includes('caption') || piece.piece_id.includes('threads') || piece.piece_id.includes('stories') || piece.piece_id.includes('whatsapp')) {
+      if (piece.piece_id.includes('caption') || piece.piece_id.includes('stories') || piece.piece_id.includes('whatsapp')) {
         fs.writeFileSync(path.join(copyDir, `${piece.piece_id}.txt`), corrected);
       }
     }

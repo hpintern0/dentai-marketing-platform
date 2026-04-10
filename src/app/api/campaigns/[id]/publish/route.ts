@@ -60,7 +60,18 @@ export async function POST(request: NextRequest, context: RouteContext) {
       .eq('campaign_id', id)
       .eq('status', 'approved');
 
-    // TODO: Trigger actual distribution agent / worker here
+    // Trigger distribution agent via BullMQ
+    try {
+      const { enqueueJob } = require('@/../pipeline/queue');
+      await enqueueJob('distribution_agent', {
+        task_name: `publish_${id}_${Date.now()}`,
+        campaign_id: id,
+        client_id: campaign.client_id,
+        ...(campaign.job_payload || {}),
+      });
+    } catch (enqueueErr: any) {
+      console.error('[Publish API] Failed to enqueue distribution job:', enqueueErr?.message);
+    }
 
     return NextResponse.json({
       message: 'Campaign publishing triggered',

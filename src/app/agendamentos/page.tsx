@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   ChevronLeft,
   ChevronRight,
@@ -11,33 +11,23 @@ import {
   Image,
   Video,
   Layers,
+  Loader2,
+  AlertCircle,
 } from 'lucide-react';
 
 interface ScheduledPost {
-  id: number;
-  title: string;
-  client: string;
-  clientColor: string;
-  date: string; // YYYY-MM-DD
-  time: string;
-  format: string;
+  id: string;
+  campaign_id: string;
+  client_id: string;
   platform: string;
+  scheduled_at: string;
+  media_urls: string[];
+  caption: string;
+  status: string;
+  content_type?: string;
+  campaigns?: { id: string; name: string };
+  clients?: { id: string; name: string };
 }
-
-const scheduledPosts: ScheduledPost[] = [
-  { id: 1, title: 'Carrossel - Implantes', client: 'Dr. Ricardo Silva', clientColor: 'bg-blue-500', date: '2026-04-10', time: '09:00', format: 'carousel', platform: 'Instagram' },
-  { id: 2, title: 'Reels - Clareamento', client: 'Clinica Sorriso', clientColor: 'bg-purple-500', date: '2026-04-10', time: '14:00', format: 'video', platform: 'Instagram' },
-  { id: 3, title: 'Post - Ortodontia', client: 'Dra. Camila Mendes', clientColor: 'bg-teal-500', date: '2026-04-11', time: '10:00', format: 'image', platform: 'Instagram' },
-  { id: 4, title: 'Carrossel - Facetas', client: 'Dr. Fernando Oliveira', clientColor: 'bg-orange-500', date: '2026-04-12', time: '11:00', format: 'carousel', platform: 'Instagram' },
-  { id: 5, title: 'Reels - Depoimento', client: 'Dr. Ricardo Silva', clientColor: 'bg-blue-500', date: '2026-04-14', time: '09:00', format: 'video', platform: 'Instagram' },
-  { id: 6, title: 'Post - Higiene Bucal', client: 'Dra. Camila Mendes', clientColor: 'bg-teal-500', date: '2026-04-15', time: '08:00', format: 'image', platform: 'Instagram' },
-  { id: 7, title: 'Carrossel - Protese', client: 'Clinica OdontoPlus', clientColor: 'bg-pink-500', date: '2026-04-16', time: '12:00', format: 'carousel', platform: 'Instagram' },
-  { id: 8, title: 'Post - Tecnologia 3D', client: 'Dr. Ricardo Silva', clientColor: 'bg-blue-500', date: '2026-04-18', time: '10:00', format: 'image', platform: 'Instagram' },
-  { id: 9, title: 'Reels - Antes/Depois', client: 'Clinica Sorriso', clientColor: 'bg-purple-500', date: '2026-04-20', time: '15:00', format: 'video', platform: 'Instagram' },
-  { id: 10, title: 'Post - Sorriso Perfeito', client: 'Dr. Fernando Oliveira', clientColor: 'bg-orange-500', date: '2026-04-22', time: '09:00', format: 'image', platform: 'Instagram' },
-  { id: 11, title: 'Carrossel - Cuidados', client: 'Clinica OdontoPlus', clientColor: 'bg-pink-500', date: '2026-04-25', time: '11:00', format: 'carousel', platform: 'Instagram' },
-  { id: 12, title: 'Reels - FAQ Implante', client: 'Dr. Ricardo Silva', clientColor: 'bg-blue-500', date: '2026-04-28', time: '14:00', format: 'video', platform: 'Instagram' },
-];
 
 const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'];
 const MONTHS = [
@@ -49,14 +39,57 @@ const formatIcons: Record<string, typeof Image> = {
   image: Image,
   carousel: Layers,
   video: Video,
+  reels: Video,
+  stories: Image,
 };
 
+// Simple hash for consistent color assignment
+function clientColor(name: string): string {
+  const colors = [
+    'bg-blue-500', 'bg-purple-500', 'bg-teal-500', 'bg-orange-500',
+    'bg-pink-500', 'bg-indigo-500', 'bg-rose-500', 'bg-emerald-500',
+  ];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return colors[Math.abs(hash) % colors.length];
+}
+
 export default function AgendamentosPage() {
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 3, 1)); // April 2026
+  const [currentDate, setCurrentDate] = useState(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  });
+  const [posts, setPosts] = useState<ScheduledPost[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedPost, setSelectedPost] = useState<ScheduledPost | null>(null);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
+
+  useEffect(() => {
+    async function fetchPosts() {
+      setLoading(true);
+      setError(null);
+      try {
+        const params = new URLSearchParams();
+        params.set('month', String(month + 1));
+        params.set('year', String(year));
+
+        const res = await fetch(`/api/scheduled-posts?${params}`);
+        if (!res.ok) throw new Error('Erro ao carregar agendamentos');
+        const json = await res.json();
+        setPosts(Array.isArray(json.data) ? json.data : Array.isArray(json) ? json : []);
+      } catch (err: any) {
+        setError(err.message ?? 'Erro inesperado');
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchPosts();
+  }, [year, month]);
 
   const calendarDays = useMemo(() => {
     const firstDay = new Date(year, month, 1).getDay();
@@ -103,17 +136,28 @@ export default function AgendamentosPage() {
 
   const postsByDate = useMemo(() => {
     const map: Record<string, ScheduledPost[]> = {};
-    scheduledPosts.forEach((post) => {
-      if (!map[post.date]) map[post.date] = [];
-      map[post.date].push(post);
+    posts.forEach((post) => {
+      const dateStr = post.scheduled_at.split('T')[0];
+      if (!map[dateStr]) map[dateStr] = [];
+      map[dateStr].push(post);
     });
     return map;
-  }, []);
+  }, [posts]);
+
+  // Get unique clients for legend
+  const uniqueClients = useMemo(() => {
+    const seen = new Map<string, string>();
+    posts.forEach((p) => {
+      const name = p.clients?.name ?? 'Desconhecido';
+      if (!seen.has(name)) seen.set(name, clientColor(name));
+    });
+    return Array.from(seen.entries()).map(([name, color]) => ({ name, color }));
+  }, [posts]);
 
   const prevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
   const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
 
-  const today = '2026-04-10';
+  const todayStr = new Date().toISOString().split('T')[0];
 
   return (
     <div className="space-y-6">
@@ -125,6 +169,15 @@ export default function AgendamentosPage() {
         </p>
       </div>
 
+      {error && (
+        <div className="card border-red-200 bg-red-50">
+          <div className="flex items-center gap-2 text-red-700">
+            <AlertCircle className="h-5 w-5" />
+            <p className="text-sm font-medium">{error}</p>
+          </div>
+        </div>
+      )}
+
       {/* Calendar */}
       <div className="card !p-0 overflow-hidden">
         {/* Month Navigation */}
@@ -135,9 +188,12 @@ export default function AgendamentosPage() {
           >
             <ChevronLeft className="h-5 w-5 text-gray-600" />
           </button>
-          <h2 className="text-lg font-semibold text-gray-900">
-            {MONTHS[month]} {year}
-          </h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-lg font-semibold text-gray-900">
+              {MONTHS[month]} {year}
+            </h2>
+            {loading && <Loader2 className="h-4 w-4 animate-spin text-gray-400" />}
+          </div>
           <button
             onClick={nextMonth}
             className="rounded-lg p-2 hover:bg-gray-100 transition-colors"
@@ -161,8 +217,8 @@ export default function AgendamentosPage() {
         {/* Calendar Grid */}
         <div className="grid grid-cols-7">
           {calendarDays.map((cell, idx) => {
-            const posts = postsByDate[cell.dateStr] || [];
-            const isToday = cell.dateStr === today;
+            const dayPosts = postsByDate[cell.dateStr] || [];
+            const isToday = cell.dateStr === todayStr;
             return (
               <div
                 key={idx}
@@ -182,18 +238,22 @@ export default function AgendamentosPage() {
                   {cell.day}
                 </div>
                 <div className="space-y-1">
-                  {posts.slice(0, 3).map((post) => (
-                    <button
-                      key={post.id}
-                      onClick={() => setSelectedPost(post)}
-                      className={`w-full truncate rounded px-1.5 py-0.5 text-left text-[10px] font-medium text-white ${post.clientColor} hover:opacity-80 transition-opacity`}
-                    >
-                      {post.title}
-                    </button>
-                  ))}
-                  {posts.length > 3 && (
+                  {dayPosts.slice(0, 3).map((post) => {
+                    const name = post.clients?.name ?? 'Post';
+                    const color = clientColor(name);
+                    return (
+                      <button
+                        key={post.id}
+                        onClick={() => setSelectedPost(post)}
+                        className={`w-full truncate rounded px-1.5 py-0.5 text-left text-[10px] font-medium text-white ${color} hover:opacity-80 transition-opacity`}
+                      >
+                        {post.campaigns?.name ?? post.caption?.slice(0, 30) ?? 'Post'}
+                      </button>
+                    );
+                  })}
+                  {dayPosts.length > 3 && (
                     <p className="text-[10px] text-gray-400 px-1">
-                      +{posts.length - 3} mais
+                      +{dayPosts.length - 3} mais
                     </p>
                   )}
                 </div>
@@ -204,23 +264,26 @@ export default function AgendamentosPage() {
       </div>
 
       {/* Legend */}
-      <div className="card !p-4">
-        <h3 className="mb-3 text-sm font-semibold text-gray-700">Clientes</h3>
-        <div className="flex flex-wrap gap-4">
-          {[
-            { name: 'Dr. Ricardo Silva', color: 'bg-blue-500' },
-            { name: 'Clinica Sorriso', color: 'bg-purple-500' },
-            { name: 'Dra. Camila Mendes', color: 'bg-teal-500' },
-            { name: 'Dr. Fernando Oliveira', color: 'bg-orange-500' },
-            { name: 'Clinica OdontoPlus', color: 'bg-pink-500' },
-          ].map((c) => (
-            <div key={c.name} className="flex items-center gap-2">
-              <div className={`h-3 w-3 rounded-full ${c.color}`} />
-              <span className="text-xs text-gray-600">{c.name}</span>
-            </div>
-          ))}
+      {uniqueClients.length > 0 && (
+        <div className="card !p-4">
+          <h3 className="mb-3 text-sm font-semibold text-gray-700">Clientes</h3>
+          <div className="flex flex-wrap gap-4">
+            {uniqueClients.map((c) => (
+              <div key={c.name} className="flex items-center gap-2">
+                <div className={`h-3 w-3 rounded-full ${c.color}`} />
+                <span className="text-xs text-gray-600">{c.name}</span>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Empty state */}
+      {!loading && posts.length === 0 && !error && (
+        <div className="py-12 text-center text-sm text-gray-500">
+          Nenhum agendamento para este mes.
+        </div>
+      )}
 
       {/* Post Detail Modal */}
       {selectedPost && (
@@ -239,40 +302,33 @@ export default function AgendamentosPage() {
               {/* Preview */}
               <div className="flex h-32 items-center justify-center rounded-lg bg-gradient-to-br from-dental-blue-50 to-dental-teal-50">
                 {(() => {
-                  const Icon = formatIcons[selectedPost.format] || Image;
+                  const format = selectedPost.content_type ?? 'image';
+                  const Icon = formatIcons[format] || Image;
                   return <Icon className="h-10 w-10 text-dental-blue-300" />;
                 })()}
               </div>
 
               <div>
                 <h3 className="font-semibold text-gray-900">
-                  {selectedPost.title}
+                  {selectedPost.campaigns?.name ?? 'Post agendado'}
                 </h3>
+                {selectedPost.caption && (
+                  <p className="mt-1 text-sm text-gray-600 line-clamp-3">{selectedPost.caption}</p>
+                )}
               </div>
 
               <div className="space-y-2 text-sm">
                 <div className="flex items-center gap-2 text-gray-600">
                   <User className="h-4 w-4 text-gray-400" />
-                  {selectedPost.client}
+                  {selectedPost.clients?.name ?? 'Cliente'}
                 </div>
                 <div className="flex items-center gap-2 text-gray-600">
                   <Clock className="h-4 w-4 text-gray-400" />
-                  {selectedPost.date} as {selectedPost.time}
+                  {new Date(selectedPost.scheduled_at).toLocaleString('pt-BR')}
                 </div>
                 <div className="flex items-center gap-2 text-gray-600">
                   <Instagram className="h-4 w-4 text-gray-400" />
                   {selectedPost.platform}
-                </div>
-                <div className="flex items-center gap-2 text-gray-600">
-                  {(() => {
-                    const Icon = formatIcons[selectedPost.format] || Image;
-                    return <Icon className="h-4 w-4 text-gray-400" />;
-                  })()}
-                  {selectedPost.format === 'carousel'
-                    ? 'Carrossel'
-                    : selectedPost.format === 'video'
-                    ? 'Video'
-                    : 'Imagem'}
                 </div>
               </div>
 
@@ -283,7 +339,6 @@ export default function AgendamentosPage() {
                 >
                   Fechar
                 </button>
-                <button className="btn-primary flex-1">Editar</button>
               </div>
             </div>
           </div>

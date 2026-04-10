@@ -1,17 +1,18 @@
 # DentAI Marketing Platform
 
 ## Overview
-Complete AI-powered marketing automation platform for dental agencies. Generates content for Instagram, YouTube, and Threads with specialized dental knowledge.
+Complete AI-powered marketing automation platform for dental agencies. Generates content for Instagram with specialized dental knowledge. Uses Supabase Auth for authentication and role-based access.
 
 ## Tech Stack
 - Frontend: Next.js 14 + Tailwind CSS + TypeScript
-- Backend: Next.js API Routes + Custom Socket.IO server
+- Backend: Next.js API Routes (15 routes) + Custom Socket.IO server
+- Auth: Supabase Auth (email/password with role-based access)
 - Database: Supabase (PostgreSQL)
 - Storage: Supabase Storage
 - Queue: BullMQ + Upstash Redis
 - AI: Anthropic Claude API (claude-sonnet-4-20250514)
 - Research: Tavily AI SDK
-- Image Rendering: Playwright (HTML → PNG)
+- Image Rendering: Playwright (HTML to PNG)
 - Video Rendering: Remotion
 - Deploy: Railway (Docker)
 
@@ -34,6 +35,23 @@ knowledge/              # Dental knowledge base (procedures, regulations, etc.)
 supabase/               # Database migrations and seed data
 ```
 
+## API Routes (15 total)
+- `/api/health` - Health check
+- `/api/clients` - CRUD for clients
+- `/api/clients/[id]` - Single client operations
+- `/api/campaigns` - CRUD for campaigns
+- `/api/campaigns/[id]` - Single campaign operations
+- `/api/campaigns/[id]/approve` - Approve campaign pieces
+- `/api/campaigns/[id]/publish` - Publish campaign
+- `/api/campaigns/chat` - Chat with AI (GET history, POST messages)
+- `/api/references` - CRUD for reference profiles
+- `/api/references/[id]` - Single reference operations
+- `/api/references/[id]/analyze` - Analyze reference profile
+- `/api/pipeline` - Trigger pipeline jobs
+- `/api/pipeline/status` - Pipeline job status
+- `/api/scheduled-posts` - Scheduled post management
+- `/api/webhooks` - Incoming webhooks
+
 ## Commands
 ```bash
 npm run dev              # Start Next.js dev server
@@ -54,14 +72,14 @@ npm run pipeline:run     # Run demo pipeline
 
 ## Environment Variables
 See .env.example for all required variables. Critical ones:
-- ANTHROPIC_API_KEY — for Claude AI content generation
-- NEXT_PUBLIC_SUPABASE_URL + keys — for database and storage
-- UPSTASH_REDIS_URL — for BullMQ job queue
-- TAVILY_API_KEY — for market research
+- ANTHROPIC_API_KEY - for Claude AI content generation
+- NEXT_PUBLIC_SUPABASE_URL + keys - for database, storage, and auth
+- UPSTASH_REDIS_URL - for BullMQ job queue
+- TAVILY_API_KEY - for market research
 
 ## Database
 Schema in supabase/migrations/001_create_tables.sql
 Tables: clients, reference_profiles, campaigns, campaign_pieces, scheduled_posts, chat_messages, pipeline_jobs, media_assets
 
 ## Pipeline Flow
-Research → Creative (parallel) → Review Loop (max 3 rounds) → Human Approval → Distribution
+Research -> Creative (parallel) -> Review Loop (max 3 rounds) -> Human Approval -> Distribution
