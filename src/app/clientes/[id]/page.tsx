@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { ArrowLeft, Pencil, Loader2, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
+import { ClientFormModal } from '@/components/client/client-form-modal';
 
 interface ClientData {
   id: string;
@@ -19,6 +20,7 @@ interface ClientData {
   active_platforms: string[];
   default_ctas: string[];
   created_at: string;
+  updated_at?: string;
   campaigns?: any[];
 }
 
@@ -28,6 +30,7 @@ export default function ClienteDetailPage() {
   const [client, setClient] = useState<ClientData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -95,7 +98,16 @@ export default function ClienteDetailPage() {
             {initials}
           </div>
           <div className="flex-1">
-            <h1 className="text-xl font-bold text-gray-900">{client.name}</h1>
+            <div className="flex items-center justify-between">
+              <h1 className="text-xl font-bold text-gray-900">{client.name}</h1>
+              <button
+                onClick={() => setShowEditModal(true)}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                <Pencil className="h-3.5 w-3.5" />
+                Editar
+              </button>
+            </div>
             <p className="text-sm text-gray-500">{client.specialty}</p>
             <div className="mt-2 flex flex-wrap gap-3 text-xs text-gray-500">
               <span>{client.city}, {client.state}</span>
@@ -197,6 +209,19 @@ export default function ClienteDetailPage() {
           </div>
         </div>
       )}
+
+      {/* Edit Modal */}
+      <ClientFormModal
+        open={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        onSuccess={async () => {
+          setShowEditModal(false);
+          // Refetch client data
+          const res = await fetch(`/api/clients/${id}`);
+          if (res.ok) setClient(await res.json());
+        }}
+        client={client as any}
+      />
     </div>
   );
 }
