@@ -3,6 +3,7 @@ const path = require('path');
 
 async function runVideoAd(job) {
   const { task_name, procedure_focus, platform_targets, tone, raw_brief, client_name, client_cro, client_instagram, client_city } = job.data;
+  const assets = job.data.client_assets || [];
   const outputDir = path.resolve(__dirname, `../../outputs/${task_name}/video`);
 
   if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
@@ -25,6 +26,13 @@ ${raw_brief ? `BRIEF DO USUÁRIO (SIGA EXATAMENTE): ${raw_brief}\n` : ''}
 Plataforma: ${platform}
 Tom: ${tone || 'educativo'}
 Hooks: ${JSON.stringify(research.ad_hooks?.slice(0, 3) || [])}
+${assets.length > 0 ? `
+IMAGENS DISPONÍVEIS (adicione "image_url" em cada scene quando fizer sentido):
+${assets.slice(0, 6).map((a, i) => `- ${a.type}: ${a.url}`).join('\n')}
+
+Para cada scene, você PODE adicionar "image_url" com uma das URLs acima.
+Ex: scene de hook pode usar foto do dentista, scene de product pode usar antes/depois.
+` : ''}
 
 Gere JSON Remotion-ready:
 {
@@ -40,32 +48,37 @@ Gere JSON Remotion-ready:
         "text": "frase impactante de abertura",
         "visual": "descrição da cena visual",
         "duration": 2,
-        "transition": "fade|slide|zoom"
+        "transition": "fade|slide|zoom",
+        "image_url": "(opcional) URL de imagem do cliente"
       },
       {
         "type": "problem",
         "text": "problema/dor do paciente",
         "visual": "descrição visual",
-        "duration": 3
+        "duration": 3,
+        "image_url": "(opcional) URL de imagem do cliente"
       },
       {
         "type": "product",
         "text": "o procedimento como solução",
         "visual": "descrição visual",
-        "duration": 4
+        "duration": 4,
+        "image_url": "(opcional) URL de imagem do cliente"
       },
       {
         "type": "benefit",
         "text": "benefício emocional",
         "visual": "descrição visual",
-        "duration": 2
+        "duration": 2,
+        "image_url": "(opcional) URL de imagem do cliente"
       },
       {
         "type": "cta",
         "text": "CTA claro",
         "visual": "logo_clinica",
         "duration": 1,
-        "animation": "slide_up"
+        "animation": "slide_up",
+        "image_url": "(opcional) URL de imagem do cliente"
       }
     ]
   }

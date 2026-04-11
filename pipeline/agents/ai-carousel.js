@@ -3,6 +3,11 @@ const path = require('path');
 
 async function runCarousel(job) {
   const { task_name, procedure_focus, tone, raw_brief, client_name, client_cro, client_instagram, client_city } = job.data;
+  const assets = job.data.client_assets || [];
+  const beforeAfterImages = assets.filter(a => a.type === 'before_after').map(a => a.url);
+  const dentistPhotos = assets.filter(a => a.type === 'photo_dentist').map(a => a.url);
+  const otherImages = assets.filter(a => a.type === 'other').map(a => a.url);
+  const allImages = [...beforeAfterImages, ...dentistPhotos, ...otherImages];
   const outputDir = path.resolve(__dirname, `../../outputs/${task_name}/carousel`);
 
   if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
@@ -22,6 +27,16 @@ ${raw_brief ? `BRIEF DO USUÁRIO (SIGA EXATAMENTE): ${raw_brief}\n` : ''}
 Tom: ${tone || 'educativo'}
 Hooks: ${JSON.stringify(research.ad_hooks?.slice(0, 3) || [])}
 Dores: ${JSON.stringify(research.patient_pain_points?.slice(0, 3) || [])}
+${allImages.length > 0 ? `
+IMAGENS DISPONÍVEIS DO CLIENTE (use image_url nos slides quando fizer sentido):
+${allImages.slice(0, 6).map((url, i) => `- Imagem ${i+1}: ${url}`).join('\n')}
+${beforeAfterImages.length > 0 ? `\nImagens de antes/depois: ${beforeAfterImages.slice(0, 3).join(', ')}` : ''}
+${dentistPhotos.length > 0 ? `\nFoto do dentista: ${dentistPhotos[0]}` : ''}
+
+Para cada slide, você PODE adicionar "image_url" com uma das URLs acima e "image_position" ("background" ou "inset").
+A capa pode usar a foto do dentista como background.
+Slides de antes/depois devem usar as imagens de antes/depois.
+` : ''}
 
 Gere JSON com esta estrutura:
 {
@@ -35,7 +50,9 @@ Gere JSON com esta estrutura:
       "body": "",
       "background_color": "#hex (escuro para capa)",
       "text_color": "#hex",
-      "accent_color": "#hex"
+      "accent_color": "#hex",
+      "image_url": "(opcional) URL de imagem do cliente",
+      "image_position": "(opcional) background | inset"
     },
     {
       "slide_number": 2,
@@ -44,7 +61,9 @@ Gere JSON com esta estrutura:
       "body": "explicação em 2-3 frases curtas, linguagem do paciente",
       "background_color": "#FFFFFF",
       "text_color": "#1A1A1A",
-      "accent_color": "#hex"
+      "accent_color": "#hex",
+      "image_url": "(opcional) URL de imagem do cliente",
+      "image_position": "(opcional) background | inset"
     },
     {
       "slide_number": 6,
@@ -53,7 +72,9 @@ Gere JSON com esta estrutura:
       "body": "subtexto + nome da clínica",
       "background_color": "#hex (mesma cor da capa)",
       "text_color": "#hex",
-      "accent_color": "#hex"
+      "accent_color": "#hex",
+      "image_url": "(opcional) URL de imagem do cliente",
+      "image_position": "(opcional) background | inset"
     }
   ]
 }
@@ -106,6 +127,35 @@ function generateSlideHTML(slide, totalSlides) {
   const bg = slide.background_color || '#FFFFFF';
   const textColor = slide.text_color || '#1A1A1A';
   const accent = slide.accent_color || '#08c4b0';
+  const hasBackgroundImage = slide.image_url && slide.image_position === 'background';
+
+  if (hasBackgroundImage) {
+    // Background image layout with dark overlay for text readability
+    let textContent = '';
+    if (slide.is_cover) {
+      textContent = `
+        <div style="font-size:64px;font-weight:800;color:#FFFFFF;text-align:center;line-height:1.2;max-width:900px;">${slide.headline}</div>
+        <div style="width:80px;height:4px;background:${accent};margin-top:40px;border-radius:2px;"></div>
+        <div style="font-size:22px;color:${accent};margin-top:30px;letter-spacing:2px;text-transform:uppercase;">Deslize para saber mais</div>`;
+    } else if (slide.is_cta) {
+      textContent = `
+        <div style="font-size:52px;font-weight:800;color:#FFFFFF;text-align:center;line-height:1.3;max-width:800px;margin-bottom:40px;">${slide.headline}</div>
+        <div style="background:${accent};color:#FFF;font-size:28px;font-weight:700;padding:20px 60px;border-radius:50px;">${slide.body || 'Agende sua avaliação'}</div>`;
+    } else {
+      textContent = `
+        <div style="font-size:48px;font-weight:800;color:#FFFFFF;line-height:1.3;margin-bottom:30px;">${slide.headline}</div>
+        <div style="width:60px;height:3px;background:${accent};margin-bottom:30px;border-radius:2px;"></div>
+        <div style="font-size:30px;color:rgba(255,255,255,0.9);line-height:1.7;">${slide.body}</div>`;
+    }
+
+    return `<div style="width:1080px;height:1080px;position:relative;overflow:hidden;">
+      <img src="${slide.image_url}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" crossorigin="anonymous" />
+      <div style="position:absolute;inset:0;background:linear-gradient(to top, rgba(0,0,0,0.7) 40%, transparent);"></div>
+      <div style="position:relative;z-index:1;padding:80px;display:flex;flex-direction:column;justify-content:flex-end;height:100%;font-family:'Inter',system-ui,sans-serif;align-items:center;">
+        ${textContent}
+      </div>
+    </div>`;
+  }
 
   if (slide.is_cover) {
     return `<div style="width:1080px;height:1080px;background:${bg};display:flex;flex-direction:column;justify-content:center;align-items:center;padding:80px;font-family:'Inter',system-ui,sans-serif;">

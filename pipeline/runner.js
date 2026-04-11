@@ -27,12 +27,17 @@ async function runPipeline(payload) {
     fs.mkdirSync(outputDir, { recursive: true });
   }
 
+  // Create Supabase client for loading client data
+  let supabase = null;
+  if (client_id && process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    const { createClient } = require('@supabase/supabase-js');
+    supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+  }
+
   // Load client profile from Supabase
   let clientProfile = null;
-  if (client_id && process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  if (supabase) {
     try {
-      const { createClient } = require('@supabase/supabase-js');
-      const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
       const { data } = await supabase.from('clients').select('*').eq('id', client_id).single();
       if (data) {
         clientProfile = data;
@@ -54,6 +59,29 @@ async function runPipeline(payload) {
     payload.client_ctas = clientProfile.default_ctas || [];
     payload.client_colors = clientProfile.color_palette || {};
   }
+
+  // Load client media assets
+  let clientAssets = [];
+  if (supabase) {
+    try {
+      const { data: assets } = await supabase
+        .from('media_assets')
+        .select('id, asset_type, public_url, metadata')
+        .eq('client_id', client_id)
+        .order('created_at', { ascending: false });
+      clientAssets = assets || [];
+      console.log(`[Pipeline] Loaded ${clientAssets.length} media assets for client`);
+    } catch (err) {
+      console.warn('[Pipeline] Could not load media assets:', err.message);
+    }
+  }
+
+  // Inject into payload
+  payload.client_assets = clientAssets.map(a => ({
+    type: a.asset_type,
+    url: a.public_url,
+    metadata: a.metadata,
+  }));
 
   const results = [];
   const startTime = Date.now();

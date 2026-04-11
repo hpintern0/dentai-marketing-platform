@@ -3,6 +3,7 @@ const path = require('path');
 
 async function runAdCreative(job) {
   const { task_name, procedure_focus, tone, raw_brief, client_name, client_cro, client_instagram, client_city } = job.data;
+  const assets = job.data.client_assets || [];
   const outputDir = path.resolve(__dirname, `../../outputs/${task_name}/ads`);
 
   if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
@@ -68,7 +69,13 @@ Gere um JSON com esta estrutura:
   ]
 }
 
-Use um design clean, moderno, profissional. Cores odontológicas (azuis, brancos, verdes suaves). Headline no máximo 5 palavras.`;
+Use um design clean, moderno, profissional. Cores odontológicas (azuis, brancos, verdes suaves). Headline no máximo 5 palavras.
+${assets.length > 0 ? `
+IMAGENS DISPONÍVEIS (use em elementos do tipo "image"):
+${assets.slice(0, 4).map((a, i) => `- ${a.type}: ${a.url}`).join('\n')}
+
+Nos elementos do tipo "image", use "src" com uma URL real acima ao invés de placeholder.
+` : ''}`;
 
   const layout = await generateJSON(layoutPrompt, `Gere o layout para um ad de ${procedure_focus}.`);
   fs.writeFileSync(path.join(outputDir, 'layout.json'), JSON.stringify(layout, null, 2));
@@ -125,6 +132,9 @@ function generateAdHTML(layout) {
       case 'logo':
         return `<div class="el-logo" style="${style}width:${el.width || 100}px;height:${el.width || 100}px;background:#ddd;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;color:#999;">Logo</div>`;
       case 'image':
+        if (el.src && el.src.startsWith('http')) {
+          return `<img src="${el.src}" style="${style}width:${el.width || 400}px;height:${el.height || 300}px;object-fit:cover;border-radius:12px;" crossorigin="anonymous" />`;
+        }
         return `<div class="el-image" style="${style}width:${el.width || 400}px;height:${el.height || 300}px;background:linear-gradient(135deg,#e0e7ff,#c4d4f5);border-radius:12px;display:flex;align-items:center;justify-content:center;color:#8899bb;font-size:16px;">[Imagem]</div>`;
       case 'divider':
         return `<div class="el-divider" style="${style}width:${el.width || 80}px;height:4px;background:${el.color || '#08c4b0'};border-radius:2px;"></div>`;

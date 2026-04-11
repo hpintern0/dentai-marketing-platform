@@ -10,6 +10,7 @@ interface Scene {
   visual?: string;
   transition?: string;
   animation?: string;
+  image_url?: string;
 }
 
 interface VideoPreviewProps {
@@ -142,6 +143,21 @@ export function VideoPreview({
       setIsPlaying(true);
       setProgress(0);
 
+      // Preload images
+      const imageMap = new Map<number, HTMLImageElement>();
+      for (let i = 0; i < scenes.length; i++) {
+        if (scenes[i].image_url) {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.src = scenes[i].image_url!;
+          await new Promise((resolve) => {
+            img.onload = resolve;
+            img.onerror = resolve; // don't fail on image load error
+          });
+          imageMap.set(i, img);
+        }
+      }
+
       let elapsed = 0;
 
       for (let i = 0; i < scenes.length; i++) {
@@ -160,6 +176,15 @@ export function VideoPreview({
           // Clear canvas
           ctx.fillStyle = style.bg;
           ctx.fillRect(0, 0, 1080, 1920);
+
+          // Draw scene background image if available
+          const img = imageMap.get(i);
+          if (img) {
+            ctx.drawImage(img, 0, 0, 1080, 1920);
+            // Dark overlay for text readability
+            ctx.fillStyle = 'rgba(0,0,0,0.5)';
+            ctx.fillRect(0, 0, 1080, 1920);
+          }
 
           // Fade in/out effect
           const fadeIn = Math.min(t * 4, 1);
@@ -297,11 +322,18 @@ export function VideoPreview({
           className="absolute inset-0 flex flex-col items-center justify-center p-8 transition-all duration-500"
           style={{
             backgroundColor: currentStyle?.bg || '#1A1A1A',
+            backgroundImage: currentScene?.image_url ? `url(${currentScene.image_url})` : 'none',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
             color: currentStyle?.text || '#FFFFFF',
           }}
         >
+          {/* Dark overlay for text readability when image is present */}
+          {currentScene?.image_url && (
+            <div className="absolute inset-0 bg-black/50" />
+          )}
           {currentScene ? (
-            <>
+            <div className="relative z-10 flex flex-col items-center justify-center">
               {currentStyle?.label && (
                 <p
                   className="text-xs font-semibold tracking-[0.2em] uppercase mb-4 animate-fade-in"
@@ -324,7 +356,7 @@ export function VideoPreview({
                   <p className="text-xs opacity-50">{clientName}</p>
                 </div>
               )}
-            </>
+            </div>
           ) : (
             <div className="text-center space-y-3">
               <Film className="mx-auto h-12 w-12 opacity-30" />

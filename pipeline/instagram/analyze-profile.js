@@ -2,7 +2,7 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-async function analyzeInstagramProfile(username, outputDir) {
+async function analyzeInstagramProfile(username, outputDir, clientId) {
   username = username.replace('@', '');
   if (!outputDir) {
     outputDir = path.resolve(__dirname, `../../outputs/instagram_${username}`);
@@ -34,6 +34,18 @@ async function analyzeInstagramProfile(username, outputDir) {
   const dataPath = path.join(outputDir, 'instagram_data.json');
   if (!fs.existsSync(dataPath)) {
     throw new Error('Scraping failed — no data file generated');
+  }
+
+  // After scraping, upload images to Supabase
+  if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    try {
+      const { uploadScrapedImagesToSupabase } = require('./upload-to-supabase');
+      if (clientId) {
+        await uploadScrapedImagesToSupabase(clientId, outputDir);
+      }
+    } catch (err) {
+      console.warn('[IG Pipeline] Image upload failed:', err.message);
+    }
   }
 
   // Step 2: Download videos with yt-dlp (best effort)
