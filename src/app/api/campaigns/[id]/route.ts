@@ -11,6 +11,9 @@ const updateCampaignSchema = z.object({
   pipeline_status: z.record(z.unknown()).optional(),
 });
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 type RouteContext = { params: Promise<{ id: string }> };
 
 export async function GET(request: NextRequest, context: RouteContext) {
