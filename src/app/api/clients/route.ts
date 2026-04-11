@@ -15,6 +15,7 @@ const createClientSchema = z.object({
   typography: z.record(z.unknown()).optional(),
   active_platforms: z.array(z.string()).optional(),
   default_ctas: z.array(z.string()).optional(),
+  drive_folder_url: z.string().url().optional().or(z.literal('')),
 });
 
 export async function GET(request: NextRequest) {

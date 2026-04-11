@@ -25,6 +25,7 @@ interface ClientFormData {
   instagram_handle: string;
   cro_number: string;
   tone: string;
+  drive_folder_url: string;
   color_palette: ColorPalette & { accent2: string };
   typography: Typography;
   active_platforms: Platform[];
@@ -55,6 +56,7 @@ const EMPTY_FORM: ClientFormData = {
   instagram_handle: '',
   cro_number: '',
   tone: '',
+  drive_folder_url: '',
   color_palette: {
     primary: '#1E40AF',
     secondary: '#0D9488',
@@ -80,6 +82,7 @@ function clientToForm(client: Client): ClientFormData {
     instagram_handle: client.instagram_handle,
     cro_number: client.cro_number,
     tone: client.tone,
+    drive_folder_url: (client as any).drive_folder_url || '',
     color_palette: {
       primary: client.color_palette.primary,
       secondary: client.color_palette.secondary,
@@ -222,6 +225,7 @@ export function ClientFormModal({
       const payload = {
         ...form,
         color_palette: paletteRest,
+        drive_folder_url: form.drive_folder_url || undefined,
       };
 
       const url = isEdit ? `/api/clients/${client!.id}` : '/api/clients';
@@ -346,7 +350,16 @@ export function ClientFormModal({
               value={form.instagram_handle}
               onChange={(e) => set('instagram_handle', e.target.value)}
             />
+            <Input
+              label="Pasta do Google Drive"
+              placeholder="https://drive.google.com/drive/folders/..."
+              value={form.drive_folder_url}
+              onChange={(e) => set('drive_folder_url', e.target.value)}
+            />
           </div>
+          <p className="text-xs text-gray-400 -mt-2">
+            Cole o link da pasta compartilhada com os materiais do cliente
+          </p>
         </fieldset>
 
         {/* ---- Logo Upload ---- */}

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { ArrowLeft, Pencil, Loader2, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Pencil, Loader2, AlertCircle, FolderSync, ExternalLink, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { ClientFormModal } from '@/components/client/client-form-modal';
 
@@ -21,6 +21,7 @@ interface ClientData {
   default_ctas: string[];
   created_at: string;
   updated_at?: string;
+  drive_folder_url?: string;
   campaigns?: any[];
   reference_profiles?: any[];
 }
@@ -32,6 +33,8 @@ export default function ClienteDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -71,6 +74,21 @@ export default function ClienteDetailPage() {
         </div>
       </div>
     );
+  }
+
+  async function handleDriveSync() {
+    setSyncing(true);
+    setSyncMessage(null);
+    try {
+      const res = await fetch(`/api/clients/${id}/sync-drive`, { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Erro ao sincronizar');
+      setSyncMessage(data.message || 'Sincronizacao iniciada');
+    } catch (err: any) {
+      setSyncMessage(`Erro: ${err.message}`);
+    } finally {
+      setSyncing(false);
+    }
   }
 
   const initials = client.name.split(' ').map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
@@ -119,6 +137,48 @@ export default function ClienteDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Google Drive Sync */}
+      {client.drive_folder_url && (
+        <div className="card">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <FolderSync className="h-5 w-5 text-hp-purple" />
+              <div>
+                <h3 className="text-sm font-semibold text-gray-900">Google Drive</h3>
+                <a
+                  href={client.drive_folder_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-xs text-hp-purple hover:underline"
+                >
+                  Abrir pasta <ExternalLink className="h-3 w-3" />
+                </a>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              {syncMessage && (
+                <span className={`flex items-center gap-1 text-xs ${syncMessage.startsWith('Erro') ? 'text-red-600' : 'text-green-600'}`}>
+                  {!syncMessage.startsWith('Erro') && <CheckCircle2 className="h-3.5 w-3.5" />}
+                  {syncMessage}
+                </span>
+              )}
+              <button
+                onClick={handleDriveSync}
+                disabled={syncing}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-hp-purple px-3 py-1.5 text-xs font-medium text-white hover:bg-hp-purple-700 disabled:opacity-50 transition-colors"
+              >
+                {syncing ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <FolderSync className="h-3.5 w-3.5" />
+                )}
+                {syncing ? 'Sincronizando...' : 'Sincronizar Drive'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

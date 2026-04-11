@@ -12,6 +12,7 @@ export interface Client {
   typography: Typography;
   active_platforms: Platform[];
   default_ctas: string[];
+  drive_folder_url?: string;
   created_at: string;
   updated_at: string;
 }
