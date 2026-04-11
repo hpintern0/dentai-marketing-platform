@@ -22,6 +22,7 @@ import {
   Film,
 } from 'lucide-react';
 import Link from 'next/link';
+import { VideoPreview } from '@/components/campaign/video-preview';
 
 interface CampaignData {
   id: string;
@@ -807,41 +808,13 @@ export default function CampanhaDetailPage() {
                               Hook: &ldquo;{v.content.hook}&rdquo;
                             </p>
                           )}
-                          {scenes.length > 0 ? (
-                            <div className="space-y-2">
-                              {scenes.map((scene: any, idx: number) => (
-                                <div
-                                  key={idx}
-                                  className="flex items-start gap-3 rounded-lg bg-gray-50 p-3 border border-gray-100"
-                                >
-                                  <span className="flex-shrink-0 flex items-center justify-center h-6 w-6 rounded-full bg-hp-purple text-white text-xs font-bold">
-                                    {idx + 1}
-                                  </span>
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2">
-                                      {scene.duration && (
-                                        <span className="text-[10px] font-medium text-gray-400">
-                                          {scene.duration}s
-                                        </span>
-                                      )}
-                                      {(scene.type || scene.label) && (
-                                        <span className="text-xs font-semibold text-gray-700">
-                                          {scene.type || scene.label}
-                                        </span>
-                                      )}
-                                    </div>
-                                    <p className="text-sm text-gray-600 mt-0.5">
-                                      {scene.text || scene.description || scene.narration || JSON.stringify(scene)}
-                                    </p>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <p className="text-sm text-gray-500 whitespace-pre-wrap">
-                              {v.content?.text || v.content?.description || JSON.stringify(v.content, null, 2)}
-                            </p>
-                          )}
+                          <VideoPreview
+                            scenes={v.content?.props?.scenes || v.content?.scenes || v.content?.script?.scenes || []}
+                            clientName={campaign.clients?.name}
+                            procedure={campaign.parsed_brief?.procedure_focus}
+                            primaryColor="#1A2744"
+                            accentColor="#C9A84C"
+                          />
                         </div>
                       )}
                     </div>
