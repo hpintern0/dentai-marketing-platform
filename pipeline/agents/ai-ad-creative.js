@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 async function runAdCreative(job) {
-  const { task_name, procedure_focus, tone, raw_brief } = job.data;
+  const { task_name, procedure_focus, tone, raw_brief, client_name, client_cro, client_instagram, client_city } = job.data;
   const outputDir = path.resolve(__dirname, `../../outputs/${task_name}/ads`);
 
   if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });

@@ -27,10 +27,39 @@ async function runPipeline(payload) {
     fs.mkdirSync(outputDir, { recursive: true });
   }
 
+  // Load client profile from Supabase
+  let clientProfile = null;
+  if (client_id && process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    try {
+      const { createClient } = require('@supabase/supabase-js');
+      const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+      const { data } = await supabase.from('clients').select('*').eq('id', client_id).single();
+      if (data) {
+        clientProfile = data;
+        console.log(`[Pipeline] Client loaded: ${data.name}`);
+      }
+    } catch (err) {
+      console.warn(`[Pipeline] Could not load client: ${err.message}`);
+    }
+  }
+
+  // Inject client data into payload so all agents can use it
+  if (clientProfile) {
+    payload.client_name = clientProfile.name;
+    payload.client_cro = clientProfile.cro_number;
+    payload.client_specialty = clientProfile.specialty;
+    payload.client_instagram = clientProfile.instagram_handle;
+    payload.client_city = `${clientProfile.city}, ${clientProfile.state}`;
+    payload.client_tone = clientProfile.tone;
+    payload.client_ctas = clientProfile.default_ctas || [];
+    payload.client_colors = clientProfile.color_palette || {};
+  }
+
   const results = [];
   const startTime = Date.now();
 
   console.log(`\n[Pipeline] Starting pipeline for: ${task_name}`);
+  console.log(`[Pipeline] Client: ${payload.client_name || 'unknown'}`);
   console.log(`[Pipeline] Procedure: ${procedure_focus}`);
   console.log(`[Pipeline] Output: ${outputDir}\n`);
 

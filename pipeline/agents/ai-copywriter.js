@@ -2,7 +2,8 @@ const fs = require('fs');
 const path = require('path');
 
 async function runCopywriter(job) {
-  const { task_name, procedure_focus, client_id, platform_targets, tone, raw_brief } = job.data;
+  const { task_name, procedure_focus, client_id, platform_targets, tone, raw_brief,
+    client_name, client_cro, client_specialty, client_instagram, client_city, client_tone, client_ctas } = job.data;
   const outputDir = path.resolve(__dirname, `../../outputs/${task_name}/copy`);
 
   if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
@@ -42,14 +43,26 @@ ${cfoRules.substring(0, 1000)}
 TERMOS PROIBIDOS:
 ${termsProhibited.substring(0, 1000)}
 
+DADOS DO CLIENTE (USE EXATAMENTE ESSES DADOS — NUNCA INVENTE):
+- Nome: ${client_name || 'Não informado'}
+- CRO: ${client_cro || 'Não informado'}
+- Especialidade: ${client_specialty || 'Não informada'}
+- Instagram: ${client_instagram || 'Não informado'}
+- Cidade: ${client_city || 'Não informada'}
+- CTAs aprovados: ${(client_ctas || []).join(' | ') || 'Agende sua avaliação'}
+
+REGRA ABSOLUTA: NUNCA use nomes genéricos como "Dr. João Silva" ou "[Nome Completo]".
+Use SEMPRE o nome real do cliente: "${client_name || 'o profissional'}".
+Use SEMPRE o CRO real: "${client_cro || ''}".
+
 Procedimento: ${procedure_focus}
-Tom: ${tone || 'educativo'}
+Tom: ${tone || client_tone || 'educativo'}
 Plataformas: ${(platform_targets || ['instagram_feed']).join(', ')}
 
 BRIEF DO USUÁRIO (SIGA EXATAMENTE O QUE FOI PEDIDO):
 ${raw_brief || 'Nenhum brief específico — gere conteúdo sobre ' + procedure_focus}
 
-IMPORTANTE: O conteúdo DEVE ser 100% focado no procedimento "${procedure_focus}" e seguir as instruções do brief acima.
+IMPORTANTE: O conteúdo DEVE ser 100% focado no procedimento "${procedure_focus}", usar os dados reais do cliente, e seguir as instruções do brief acima.
 
 Dados de pesquisa:
 - Hooks: ${JSON.stringify(research.ad_hooks || [])}
