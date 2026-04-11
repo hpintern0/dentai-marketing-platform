@@ -200,6 +200,23 @@ async function saveOutputsToSupabase(payload, outputDir) {
       });
       console.log(`[Pipeline] Uploaded slide: ${slides[i]}`);
     }
+
+    // If no PNG slides but structure exists, save structure as pieces
+    const structurePath = path.join(carouselDir, 'carousel_structure.json');
+    if (pieces.filter(p => p.piece_type === 'carousel_slide').length === 0 && fs.existsSync(structurePath)) {
+      const structure = JSON.parse(fs.readFileSync(structurePath, 'utf-8'));
+      const slides = structure.slides || [];
+      for (let i = 0; i < slides.length; i++) {
+        pieces.push({
+          campaign_id: campaignId,
+          piece_type: 'carousel_slide',
+          piece_index: i + 1,
+          content: slides[i],
+          approval_status: 'pending',
+        });
+      }
+      console.log(`[Pipeline] Saved ${slides.length} carousel slides (structure, no PNG)`);
+    }
   }
 
   // Upload ad creatives
@@ -226,6 +243,20 @@ async function saveOutputsToSupabase(payload, outputDir) {
         approval_status: 'pending',
       });
       console.log(`[Pipeline] Uploaded ad: ${ad}`);
+    }
+
+    // If no ad PNGs but layout exists, save layout as piece
+    const layoutPath = path.join(adsDir, 'layout.json');
+    if (pieces.filter(p => p.piece_type === 'instagram_ad').length === 0 && fs.existsSync(layoutPath)) {
+      const layout = JSON.parse(fs.readFileSync(layoutPath, 'utf-8'));
+      pieces.push({
+        campaign_id: campaignId,
+        piece_type: 'instagram_ad',
+        piece_index: 0,
+        content: layout,
+        approval_status: 'pending',
+      });
+      console.log(`[Pipeline] Saved ad layout (no PNG)`);
     }
   }
 
@@ -254,6 +285,20 @@ async function saveOutputsToSupabase(payload, outputDir) {
         approval_status: 'pending',
       });
       console.log(`[Pipeline] Uploaded video: ${vid}`);
+    }
+
+    // If no video files but concept exists, save concept as piece
+    const conceptPath = path.join(videoDir, 'video_concept.json');
+    if (pieces.filter(p => p.piece_type === 'video').length === 0 && fs.existsSync(conceptPath)) {
+      const concept = JSON.parse(fs.readFileSync(conceptPath, 'utf-8'));
+      pieces.push({
+        campaign_id: campaignId,
+        piece_type: 'video',
+        piece_index: 0,
+        content: concept,
+        approval_status: 'pending',
+      });
+      console.log(`[Pipeline] Saved video concept (no MP4)`);
     }
   }
 

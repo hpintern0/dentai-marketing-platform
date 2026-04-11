@@ -66,20 +66,20 @@ const campaignStatusBadge: Record<string, { label: string; class: string }> = {
 };
 
 const AGENT_LABELS: Record<string, string> = {
-  dental_research_agent: 'Pesquisa de tendências',
-  dental_intelligence_agent: 'Inteligência dental',
-  ad_creative_designer: 'Design de criativos',
-  carousel_agent: 'Geração de carrossel',
-  video_ad_specialist: 'Criação de vídeo',
-  copywriter_agent: 'Redação de copy',
-  review_orchestrator: 'Orquestração de review',
-  cfo_compliance_reviewer: 'Revisão CFO',
-  copy_reviewer: 'Revisão de copy',
-  visual_reviewer: 'Revisão visual',
-  dental_expert_reviewer: 'Revisão especialista',
-  issue_consolidator: 'Consolidação de issues',
-  correction_agent: 'Correções',
-  distribution_agent: 'Distribuição',
+  dental_research_agent: 'Pesquisa de Tendencias',
+  dental_intelligence_agent: 'Inteligencia Dental',
+  ad_creative_designer: 'Design de Criativos',
+  carousel_agent: 'Geracao de Carrossel',
+  video_ad_specialist: 'Geracao de Video',
+  copywriter_agent: 'Redacao de Copy',
+  review_orchestrator: 'Revisao de Qualidade',
+  cfo_compliance_reviewer: 'Revisao CFO',
+  copy_reviewer: 'Revisao de Copy',
+  visual_reviewer: 'Revisao Visual',
+  dental_expert_reviewer: 'Revisao Especialista',
+  issue_consolidator: 'Consolidacao de Issues',
+  correction_agent: 'Correcoes',
+  distribution_agent: 'Distribuicao',
 };
 
 export default function CampanhaDetailPage() {
@@ -344,7 +344,8 @@ export default function CampanhaDetailPage() {
               const agentStatus = agent.status ?? 'queued';
               const config = statusConfig[agentStatus] ?? statusConfig.queued;
               const StepIcon = config.icon;
-              const label = AGENT_LABELS[agent.job_name] ?? agent.job_name;
+              const agentKey = agent.agent || agent.job_name || '';
+              const label = AGENT_LABELS[agentKey] ?? agentKey;
               return (
                 <div key={idx} className="flex items-start gap-3">
                   <div className="relative flex flex-col items-center">
@@ -521,23 +522,85 @@ export default function CampanhaDetailPage() {
       {(activeTab === 'criativos' || activeTab === 'carrossel') && (
         <div className="card">
           {(() => {
+            const isCarrossel = activeTab === 'carrossel';
+            const CREATIVE_TYPES = isCarrossel
+              ? ['carousel_slide']
+              : ['instagram_ad', 'carousel_slide', 'creative', 'static_image'];
             const slides = (campaign.campaign_pieces || [])
-              .filter((p: any) => p.piece_type === 'carousel_slide' || p.piece_type === 'instagram_ad')
+              .filter((p: any) => CREATIVE_TYPES.includes(p.piece_type))
               .sort((a: any, b: any) => (a.piece_index || 0) - (b.piece_index || 0));
-            if (slides.length === 0) {
+
+            // Fallback: if carrossel tab has no slides, try to extract slide data from copy_manifest
+            let manifestSlides: any[] = [];
+            if (isCarrossel && slides.length === 0) {
+              const manifest = (campaign.campaign_pieces || []).find((p: any) => p.piece_type === 'copy_manifest');
+              if (manifest) {
+                const content = typeof manifest.content === 'string'
+                  ? (() => { try { return JSON.parse(manifest.content); } catch { return null; } })()
+                  : manifest.content;
+                if (content?.slides && Array.isArray(content.slides)) {
+                  manifestSlides = content.slides;
+                } else if (content?.carousel_slides && Array.isArray(content.carousel_slides)) {
+                  manifestSlides = content.carousel_slides;
+                }
+              }
+            }
+
+            if (slides.length === 0 && manifestSlides.length === 0) {
               return (
                 <div className="py-12 text-center">
                   <Layers className="mx-auto h-8 w-8 text-gray-300 mb-3" />
                   <p className="text-sm text-gray-500">
-                    {campaign.status === 'generating' ? 'Gerando criativos...' : 'Nenhum criativo gerado ainda.'}
+                    {campaign.status === 'generating'
+                      ? 'Gerando criativos...'
+                      : isCarrossel
+                      ? 'Os slides foram gerados. Faca download dos arquivos HTML para visualizar.'
+                      : 'Nenhum criativo gerado ainda.'}
                   </p>
                 </div>
               );
             }
+
+            // If we only have manifest slides (no actual pieces), show them as cards
+            if (slides.length === 0 && manifestSlides.length > 0) {
+              return (
+                <div>
+                  <h3 className="mb-4 text-lg font-semibold text-gray-900">
+                    Slides do Carrossel ({manifestSlides.length})
+                  </h3>
+                  <p className="mb-4 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                    Renderizacao visual nao disponivel neste ambiente. Exibindo estrutura dos slides.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {manifestSlides.map((slide: any, idx: number) => (
+                      <div key={idx} className="rounded-xl border border-gray-200 p-4 bg-gray-50">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="flex-shrink-0 flex items-center justify-center h-6 w-6 rounded-full bg-hp-purple text-white text-xs font-bold">
+                            {idx + 1}
+                          </span>
+                          <span className="text-sm font-semibold text-gray-900">
+                            {slide.title || slide.headline || `Slide ${idx + 1}`}
+                          </span>
+                        </div>
+                        {(slide.text || slide.body || slide.description) && (
+                          <p className="text-sm text-gray-600 mt-1">{slide.text || slide.body || slide.description}</p>
+                        )}
+                        {slide.cta && (
+                          <span className="mt-2 inline-block rounded-full bg-hp-purple/10 px-2 py-0.5 text-xs font-medium text-hp-purple">
+                            CTA: {slide.cta}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            }
+
             return (
               <div>
                 <h3 className="mb-4 text-lg font-semibold text-gray-900">
-                  {activeTab === 'carrossel' ? 'Slides do Carrossel' : 'Criativos'} ({slides.length})
+                  {isCarrossel ? 'Slides do Carrossel' : 'Criativos'} ({slides.length})
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {slides.map((piece: any, idx: number) => (
@@ -548,14 +611,31 @@ export default function CampanhaDetailPage() {
                           alt={piece.content?.title || `Slide ${idx + 1}`}
                           className="w-full aspect-square object-cover"
                         />
+                      ) : piece.content?.html ? (
+                        <div
+                          className="w-full aspect-square overflow-auto bg-white p-2"
+                          dangerouslySetInnerHTML={{ __html: piece.content.html }}
+                        />
                       ) : (
-                        <div className="w-full aspect-square bg-gray-100 flex items-center justify-center">
-                          <Image className="h-8 w-8 text-gray-300" />
+                        <div className="w-full aspect-square bg-gray-50 flex flex-col items-center justify-center p-4 text-center">
+                          <Image className="h-8 w-8 text-gray-300 mb-2" />
+                          <p className="text-xs text-gray-500 font-medium">Criativo gerado</p>
+                          <p className="text-[10px] text-gray-400 mt-1">Renderizacao visual disponivel via download</p>
+                          {piece.content?.title && (
+                            <p className="text-sm text-gray-700 font-medium mt-2">{piece.content.title}</p>
+                          )}
+                          {piece.content?.description && (
+                            <p className="text-xs text-gray-500 mt-1">{piece.content.description}</p>
+                          )}
                         </div>
                       )}
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
-                        <p className="text-sm font-medium text-white">{piece.content?.title || `Slide ${idx + 1}`}</p>
-                        <span className="mt-1 inline-block rounded-full bg-green-500/90 px-2 py-0.5 text-[10px] font-medium text-white">
+                      <div className={`${piece.media_url ? 'absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent' : 'bg-gray-100 border-t border-gray-200'} p-4`}>
+                        <p className={`text-sm font-medium ${piece.media_url ? 'text-white' : 'text-gray-900'}`}>
+                          {piece.content?.title || `Slide ${idx + 1}`}
+                        </p>
+                        <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                          piece.media_url ? 'bg-green-500/90 text-white' : 'bg-green-100 text-green-700'
+                        }`}>
                           {piece.approval_status === 'approved' ? 'Aprovado' : piece.approval_status}
                         </span>
                       </div>
@@ -582,8 +662,15 @@ export default function CampanhaDetailPage() {
       {activeTab === 'copy' && (
         <div className="card">
           {(() => {
+            const COPY_TYPES = ['instagram_caption', 'stories_copy', 'whatsapp_cta', 'copy_manifest'];
+            const COPY_LABELS: Record<string, string> = {
+              instagram_caption: 'Instagram Caption',
+              stories_copy: 'Stories Copy',
+              whatsapp_cta: 'WhatsApp CTA',
+              copy_manifest: 'Copy Completa',
+            };
             const copies = (campaign.campaign_pieces || [])
-              .filter((p: any) => p.piece_type === 'instagram_caption' || p.piece_type === 'stories_copy' || p.piece_type === 'whatsapp_cta');
+              .filter((p: any) => COPY_TYPES.includes(p.piece_type));
             if (copies.length === 0) {
               return (
                 <div className="py-12 text-center">
@@ -599,23 +686,54 @@ export default function CampanhaDetailPage() {
                   <div key={piece.id} className="rounded-xl border border-gray-200 p-4">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-xs font-medium text-gray-500 uppercase">
-                        {piece.piece_type === 'instagram_caption'
-                          ? 'Instagram Caption'
-                          : piece.piece_type === 'stories_copy'
-                          ? 'Stories Copy'
-                          : piece.piece_type === 'whatsapp_cta'
-                          ? 'WhatsApp CTA'
-                          : piece.piece_type}
+                        {COPY_LABELS[piece.piece_type] ?? piece.piece_type}
                       </span>
                       <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-medium text-green-700">
                         {piece.approval_status === 'approved' ? 'Aprovado' : piece.approval_status}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
-                      {piece.content?.text || JSON.stringify(piece.content)}
-                    </p>
+                    {piece.piece_type === 'copy_manifest' ? (
+                      <div className="space-y-3">
+                        {(() => {
+                          const manifest = typeof piece.content === 'string' ? (() => { try { return JSON.parse(piece.content); } catch { return null; } })() : piece.content;
+                          if (!manifest || typeof manifest !== 'object') {
+                            return <p className="text-sm text-gray-700 whitespace-pre-wrap">{JSON.stringify(piece.content, null, 2)}</p>;
+                          }
+                          const sections: { label: string; value: string }[] = [];
+                          if (manifest.campaign_angle) sections.push({ label: 'Angulo da Campanha', value: manifest.campaign_angle });
+                          if (manifest.instagram_caption) sections.push({ label: 'Instagram Caption', value: manifest.instagram_caption });
+                          if (manifest.stories_copy) sections.push({ label: 'Stories Copy', value: manifest.stories_copy });
+                          if (manifest.whatsapp_cta) sections.push({ label: 'WhatsApp CTA', value: manifest.whatsapp_cta });
+                          if (manifest.headline) sections.push({ label: 'Headline', value: manifest.headline });
+                          if (manifest.subheadline) sections.push({ label: 'Subheadline', value: manifest.subheadline });
+                          if (manifest.cta) sections.push({ label: 'CTA', value: manifest.cta });
+                          // fallback: show all remaining top-level string keys
+                          if (sections.length === 0) {
+                            Object.entries(manifest).forEach(([k, v]) => {
+                              if (typeof v === 'string') sections.push({ label: k, value: v as string });
+                            });
+                          }
+                          if (sections.length === 0) {
+                            return <p className="text-sm text-gray-700 whitespace-pre-wrap">{JSON.stringify(manifest, null, 2)}</p>;
+                          }
+                          return sections.map((s, i) => (
+                            <div key={i} className="rounded-lg bg-gray-50 border border-gray-100 p-3">
+                              <span className="text-xs font-semibold text-hp-purple uppercase">{s.label}</span>
+                              <p className="mt-1 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{s.value}</p>
+                            </div>
+                          ));
+                        })()}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+                        {piece.content?.text ?? piece.content?.caption ?? piece.content?.body ?? (typeof piece.content === 'string' ? piece.content : JSON.stringify(piece.content, null, 2))}
+                      </p>
+                    )}
                     <button
-                      onClick={() => { navigator.clipboard.writeText(piece.content?.text || ''); }}
+                      onClick={() => {
+                        const textToCopy = piece.content?.text ?? piece.content?.caption ?? piece.content?.body ?? (typeof piece.content === 'string' ? piece.content : JSON.stringify(piece.content, null, 2));
+                        navigator.clipboard.writeText(textToCopy);
+                      }}
                       className="mt-3 text-xs text-hp-purple hover:text-hp-purple-700 font-medium"
                     >
                       Copiar texto
@@ -632,7 +750,8 @@ export default function CampanhaDetailPage() {
       {activeTab === 'video' && (
         <div className="card">
           {(() => {
-            const videos = (campaign.campaign_pieces || []).filter((p: any) => p.piece_type === 'video');
+            const VIDEO_TYPES = ['video', 'video_concept', 'video_script', 'video_ad'];
+            const videos = (campaign.campaign_pieces || []).filter((p: any) => VIDEO_TYPES.includes(p.piece_type));
             if (videos.length === 0) {
               return (
                 <div className="py-12 text-center">
