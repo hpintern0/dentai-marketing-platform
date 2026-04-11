@@ -20,7 +20,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
     const { data: campaign, error: campaignError } = await supabase
       .from('campaigns')
-      .select('*, clients(id, name, specialty)')
+      .select('*, clients(id, name, specialty), campaign_pieces(*)')
       .eq('id', id)
       .single();
 
