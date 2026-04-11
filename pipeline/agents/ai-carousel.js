@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 async function runCarousel(job) {
-  const { task_name, procedure_focus, tone } = job.data;
+  const { task_name, procedure_focus, tone, raw_brief } = job.data;
   const outputDir = path.resolve(__dirname, `../../outputs/${task_name}/carousel`);
 
   if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
@@ -18,6 +18,7 @@ async function runCarousel(job) {
   const carouselStructure = await generateJSON(
     `Você é um especialista em carrosséis educativos para Instagram de clínicas odontológicas. Gere a estrutura completa de um carrossel de 6 slides sobre "${procedure_focus}".
 
+${raw_brief ? `BRIEF DO USUÁRIO (SIGA EXATAMENTE): ${raw_brief}\n` : ''}
 Tom: ${tone || 'educativo'}
 Hooks: ${JSON.stringify(research.ad_hooks?.slice(0, 3) || [])}
 Dores: ${JSON.stringify(research.patient_pain_points?.slice(0, 3) || [])}

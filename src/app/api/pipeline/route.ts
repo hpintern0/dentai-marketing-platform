@@ -41,6 +41,8 @@ export async function POST(request: NextRequest) {
       campaign_objective: body.campaign_objective || 'captacao_pacientes',
       platform_targets: body.platform_targets || ['instagram_feed'],
       tone: body.tone || 'educativo',
+      raw_brief: body.raw_brief || '',
+      formats: body.formats || [],
       skip_research: body.skip_research || false,
       skip_image: body.skip_image || false,
       skip_video: body.skip_video || false,

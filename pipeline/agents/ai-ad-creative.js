@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 async function runAdCreative(job) {
-  const { task_name, procedure_focus, tone } = job.data;
+  const { task_name, procedure_focus, tone, raw_brief } = job.data;
   const outputDir = path.resolve(__dirname, `../../outputs/${task_name}/ads`);
 
   if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
@@ -19,6 +19,7 @@ async function runAdCreative(job) {
   // Step 1: Generate layout spec
   const layoutPrompt = `Você é um designer de anúncios para Instagram especializando em clínicas odontológicas. Gere um layout JSON para um criativo 1080x1080 sobre "${procedure_focus}".
 
+${raw_brief ? `BRIEF DO USUÁRIO: ${raw_brief}\n` : ''}
 Tom: ${tone || 'educativo'}
 Hooks disponíveis: ${JSON.stringify(research.ad_hooks?.slice(0, 3) || [])}
 

@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 async function runVideoAd(job) {
-  const { task_name, procedure_focus, platform_targets, tone } = job.data;
+  const { task_name, procedure_focus, platform_targets, tone, raw_brief } = job.data;
   const outputDir = path.resolve(__dirname, `../../outputs/${task_name}/video`);
 
   if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
@@ -21,6 +21,7 @@ async function runVideoAd(job) {
   const videoConcept = await generateJSON(
     `Você é um especialista em vídeos curtos para marketing odontológico (Reels/Shorts). Gere o conceito e scenes para um vídeo de ${maxDuration} segundos sobre "${procedure_focus}".
 
+${raw_brief ? `BRIEF DO USUÁRIO (SIGA EXATAMENTE): ${raw_brief}\n` : ''}
 Plataforma: ${platform}
 Tom: ${tone || 'educativo'}
 Hooks: ${JSON.stringify(research.ad_hooks?.slice(0, 3) || [])}

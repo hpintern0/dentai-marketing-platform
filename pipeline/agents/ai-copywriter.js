@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 async function runCopywriter(job) {
-  const { task_name, procedure_focus, client_id, platform_targets, tone } = job.data;
+  const { task_name, procedure_focus, client_id, platform_targets, tone, raw_brief } = job.data;
   const outputDir = path.resolve(__dirname, `../../outputs/${task_name}/copy`);
 
   if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
@@ -45,6 +45,11 @@ ${termsProhibited.substring(0, 1000)}
 Procedimento: ${procedure_focus}
 Tom: ${tone || 'educativo'}
 Plataformas: ${(platform_targets || ['instagram_feed']).join(', ')}
+
+BRIEF DO USUÁRIO (SIGA EXATAMENTE O QUE FOI PEDIDO):
+${raw_brief || 'Nenhum brief específico — gere conteúdo sobre ' + procedure_focus}
+
+IMPORTANTE: O conteúdo DEVE ser 100% focado no procedimento "${procedure_focus}" e seguir as instruções do brief acima.
 
 Dados de pesquisa:
 - Hooks: ${JSON.stringify(research.ad_hooks || [])}
