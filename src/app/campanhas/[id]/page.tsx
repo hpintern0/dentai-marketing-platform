@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import {
   ArrowLeft,
@@ -19,6 +19,7 @@ import {
   FileCheck,
   Shield,
   AlertCircle,
+  Film,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -102,23 +103,42 @@ export default function CampanhaDetailPage() {
     }
   }, [toast]);
 
-  useEffect(() => {
-    async function fetchCampaign() {
+  const fetchCampaign = useCallback(async (isPolling = false) => {
+    if (!isPolling) {
       setLoading(true);
       setError(null);
-      try {
-        const res = await fetch(`/api/campaigns/${campaignId}`);
-        if (!res.ok) throw new Error('Campanha não encontrada');
-        const json = await res.json();
-        setCampaign(json.data ?? json);
-      } catch (err: any) {
+    }
+    try {
+      const res = await fetch(`/api/campaigns/${campaignId}`);
+      if (!res.ok) throw new Error('Campanha não encontrada');
+      const json = await res.json();
+      setCampaign(json.data ?? json);
+    } catch (err: any) {
+      if (!isPolling) {
         setError(err.message ?? 'Erro ao carregar campanha');
-      } finally {
+      }
+    } finally {
+      if (!isPolling) {
         setLoading(false);
       }
     }
-    if (campaignId) fetchCampaign();
   }, [campaignId]);
+
+  // Initial fetch
+  useEffect(() => {
+    if (campaignId) fetchCampaign(false);
+  }, [campaignId, fetchCampaign]);
+
+  // Auto-poll every 5s while status is "generating"
+  useEffect(() => {
+    if (!campaign || campaign.status !== 'generating') return;
+
+    const interval = setInterval(() => {
+      fetchCampaign(true);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [campaign?.status, fetchCampaign]);
 
   const handleApprove = async () => {
     setApproving(true);
@@ -579,7 +599,13 @@ export default function CampanhaDetailPage() {
                   <div key={piece.id} className="rounded-xl border border-gray-200 p-4">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-xs font-medium text-gray-500 uppercase">
-                        {piece.piece_type === 'instagram_caption' ? 'Instagram Caption' : piece.piece_type}
+                        {piece.piece_type === 'instagram_caption'
+                          ? 'Instagram Caption'
+                          : piece.piece_type === 'stories_copy'
+                          ? 'Stories Copy'
+                          : piece.piece_type === 'whatsapp_cta'
+                          ? 'WhatsApp CTA'
+                          : piece.piece_type}
                       </span>
                       <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-medium text-green-700">
                         {piece.approval_status === 'approved' ? 'Aprovado' : piece.approval_status}
@@ -620,27 +646,88 @@ export default function CampanhaDetailPage() {
             return (
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-gray-900">Vídeos ({videos.length})</h3>
-                {videos.map((v: any) => (
-                  <div key={v.id} className="rounded-xl border border-gray-200 overflow-hidden">
-                    <video
-                      src={v.media_url}
-                      controls
-                      className="w-full max-h-[600px] bg-black"
-                      poster=""
-                    />
-                    <div className="p-3 flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-700">{v.content?.title || 'Vídeo'}</span>
-                      <a
-                        href={v.media_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs font-medium text-hp-purple hover:text-hp-purple-700"
-                      >
-                        Download
-                      </a>
+                {videos.map((v: any) => {
+                  const scenes: any[] = v.content?.scenes || v.content?.script?.scenes || [];
+                  const hasVideo = !!v.media_url;
+
+                  return (
+                    <div key={v.id} className="rounded-xl border border-gray-200 overflow-hidden">
+                      {hasVideo ? (
+                        <>
+                          <video
+                            src={v.media_url}
+                            controls
+                            className="w-full max-h-[600px] bg-black"
+                            poster=""
+                          />
+                          <div className="p-3 flex items-center justify-between">
+                            <span className="text-sm font-medium text-gray-700">{v.content?.title || 'Vídeo'}</span>
+                            <a
+                              href={v.media_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs font-medium text-hp-purple hover:text-hp-purple-700"
+                            >
+                              Download
+                            </a>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="p-4 space-y-3">
+                          <div className="flex items-center gap-2 mb-3">
+                            <Film className="h-5 w-5 text-hp-purple" />
+                            <span className="text-sm font-semibold text-gray-900">
+                              {v.content?.title || 'Conceito do Vídeo'}
+                            </span>
+                            <span className="ml-auto rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-700">
+                              Sem MP4 - Preview do roteiro
+                            </span>
+                          </div>
+                          {v.content?.hook && (
+                            <p className="text-sm text-gray-600 italic border-l-2 border-hp-purple pl-3">
+                              Hook: &ldquo;{v.content.hook}&rdquo;
+                            </p>
+                          )}
+                          {scenes.length > 0 ? (
+                            <div className="space-y-2">
+                              {scenes.map((scene: any, idx: number) => (
+                                <div
+                                  key={idx}
+                                  className="flex items-start gap-3 rounded-lg bg-gray-50 p-3 border border-gray-100"
+                                >
+                                  <span className="flex-shrink-0 flex items-center justify-center h-6 w-6 rounded-full bg-hp-purple text-white text-xs font-bold">
+                                    {idx + 1}
+                                  </span>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2">
+                                      {scene.duration && (
+                                        <span className="text-[10px] font-medium text-gray-400">
+                                          {scene.duration}s
+                                        </span>
+                                      )}
+                                      {(scene.type || scene.label) && (
+                                        <span className="text-xs font-semibold text-gray-700">
+                                          {scene.type || scene.label}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <p className="text-sm text-gray-600 mt-0.5">
+                                      {scene.text || scene.description || scene.narration || JSON.stringify(scene)}
+                                    </p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-sm text-gray-500 whitespace-pre-wrap">
+                              {v.content?.text || v.content?.description || JSON.stringify(v.content, null, 2)}
+                            </p>
+                          )}
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             );
           })()}
