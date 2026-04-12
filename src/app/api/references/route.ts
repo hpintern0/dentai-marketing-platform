@@ -56,9 +56,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Clean instagram handle — accept full URL or @handle
+    let handle = parsed.data.instagram_handle || '';
+    // Extract from URL: https://www.instagram.com/dra.claudiadiniz/ → @dra.claudiadiniz
+    const urlMatch = handle.match(/instagram\.com\/([^/?]+)/);
+    if (urlMatch) handle = `@${urlMatch[1]}`;
+    if (!handle.startsWith('@')) handle = `@${handle}`;
+
     const { data, error } = await supabase
       .from('reference_profiles')
-      .insert({ ...parsed.data, analysis_status: 'pending' })
+      .insert({ ...parsed.data, instagram_handle: handle, analysis_status: 'pendente' })
       .select()
       .single();
 
