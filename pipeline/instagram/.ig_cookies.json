@@ -1,40 +1,40 @@
 [
   {
     "name": "csrftoken",
-    "value": "bmKWvHmF5hFqNKY4sRghcC",
+    "value": "y7MdEWHE9AlNU2gsKk12R3",
     "domain": ".instagram.com",
     "path": "/",
-    "expires": 1810415688.053076,
+    "expires": 1810566313.070836,
     "httpOnly": false,
     "secure": true,
-    "sameSite": "Lax"
+    "sameSite": "None"
   },
   {
     "name": "datr",
-    "value": "p2fZaU2XxaX6XzTWpNFgOkBa",
+    "value": "qLTbaUpFjTRXwrikkAB_Hfqy",
     "domain": ".instagram.com",
     "path": "/",
-    "expires": 1810415527.485794,
+    "expires": 1810566313.070953,
     "httpOnly": true,
     "secure": true,
     "sameSite": "None"
   },
   {
     "name": "ig_did",
-    "value": "21B7F3FE-578D-4DD5-B39D-34CE221EF423",
+    "value": "CECB6432-0099-44C2-AEB9-4F62E23EC739",
     "domain": ".instagram.com",
     "path": "/",
-    "expires": 1807391527.485825,
+    "expires": 1807542313.070969,
     "httpOnly": true,
     "secure": true,
     "sameSite": "None"
   },
   {
     "name": "mid",
-    "value": "adlnpwAEAAFxrD2LR2oGSPtF2CAg",
+    "value": "adu0qAAEAAFLvv_82pkfr5kMqzqS",
     "domain": ".instagram.com",
     "path": "/",
-    "expires": 1810415527.485839,
+    "expires": 1810566313.07098,
     "httpOnly": true,
     "secure": true,
     "sameSite": "None"
@@ -44,7 +44,7 @@
     "value": "1",
     "domain": ".instagram.com",
     "path": "/",
-    "expires": 1810415527.753814,
+    "expires": 1810566313.303689,
     "httpOnly": true,
     "secure": true,
     "sameSite": "Lax"
@@ -54,37 +54,27 @@
     "value": "1",
     "domain": ".instagram.com",
     "path": "/",
-    "expires": 1810415527.753842,
+    "expires": 1810566313.303717,
     "httpOnly": true,
     "secure": true,
     "sameSite": "None"
-  },
-  {
-    "name": "wd",
-    "value": "1920x1080",
-    "domain": ".instagram.com",
-    "path": "/",
-    "expires": 1776460560,
-    "httpOnly": false,
-    "secure": true,
-    "sameSite": "Lax"
   },
   {
     "name": "dpr",
     "value": "1",
     "domain": ".instagram.com",
     "path": "/",
-    "expires": 1776460560,
+    "expires": 1776611113,
     "httpOnly": false,
     "secure": true,
     "sameSite": "None"
   },
   {
-    "name": "ig_nrcb",
-    "value": "1",
+    "name": "wd",
+    "value": "1280x720",
     "domain": ".instagram.com",
     "path": "/",
-    "expires": 1807391563.643993,
+    "expires": 1776611113,
     "httpOnly": false,
     "secure": true,
     "sameSite": "Lax"
