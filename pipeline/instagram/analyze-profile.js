@@ -11,23 +11,37 @@ async function analyzeInstagramProfile(username, outputDir, clientId) {
 
   console.log(`[IG Pipeline] Starting analysis of @${username}`);
 
-  // Step 1: Scrape profile with Playwright browser scraper
+  // Step 1: Scrape profile — prefer authenticated scraper for better results
   console.log(`[IG Pipeline] Step 1: Scraping profile...`);
-  try {
-    const scraperPath = path.join(__dirname, 'browser-scraper.js');
-    const { scrapeProfile } = require(scraperPath);
-    await scrapeProfile(username, outputDir, 12);
-  } catch (err) {
-    console.error(`[IG Pipeline] Scraper error: ${err.message}`);
-    // Try auth version if available
+  let scrapeSuccess = false;
+
+  // Try authenticated scraper first (gets real data)
+  if (process.env.INSTAGRAM_USERNAME && process.env.INSTAGRAM_PASSWORD) {
     try {
-      if (process.env.INSTAGRAM_USERNAME && process.env.INSTAGRAM_PASSWORD) {
-        const authScraperPath = path.join(__dirname, 'browser-scraper-auth.js');
-        const { scrapeProfileAuth } = require(authScraperPath);
-        await scrapeProfileAuth(username, outputDir, 12);
+      console.log(`[IG Pipeline] Using authenticated scraper...`);
+      const authScraperPath = path.join(__dirname, 'browser-scraper-auth.js');
+      const { scrapeProfileAuth } = require(authScraperPath);
+      const result = await scrapeProfileAuth(username, outputDir, 12);
+      if (result && result.posts && result.posts.length > 0) {
+        scrapeSuccess = true;
+        console.log(`[IG Pipeline] Auth scraper: ${result.posts.length} posts collected`);
+      } else {
+        console.warn(`[IG Pipeline] Auth scraper returned 0 posts, trying fallback...`);
       }
     } catch (authErr) {
-      console.error(`[IG Pipeline] Auth scraper also failed: ${authErr.message}`);
+      console.error(`[IG Pipeline] Auth scraper failed: ${authErr.message}`);
+    }
+  }
+
+  // Fallback to non-auth scraper
+  if (!scrapeSuccess) {
+    try {
+      console.log(`[IG Pipeline] Using non-auth scraper as fallback...`);
+      const scraperPath = path.join(__dirname, 'browser-scraper.js');
+      const { scrapeProfile } = require(scraperPath);
+      await scrapeProfile(username, outputDir, 12);
+    } catch (err) {
+      console.error(`[IG Pipeline] Fallback scraper also failed: ${err.message}`);
     }
   }
 
