@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { ArrowLeft, Pencil, Loader2, AlertCircle, FolderSync, ExternalLink, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Pencil, Loader2, AlertCircle, FolderSync, ExternalLink, CheckCircle2, Instagram, Search } from 'lucide-react';
 import Link from 'next/link';
 import { ClientFormModal } from '@/components/client/client-form-modal';
 
@@ -35,6 +35,9 @@ export default function ClienteDetailPage() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
+  const [analyzingRef, setAnalyzingRef] = useState<string | null>(null);
+  const [analyzingIG, setAnalyzingIG] = useState(false);
+  const [igMessage, setIgMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -180,6 +183,91 @@ export default function ClienteDetailPage() {
         </div>
       )}
 
+      {/* Instagram Intelligence */}
+      {client.instagram_handle && (
+        <div className="card">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Instagram className="h-5 w-5 text-hp-purple" />
+              <div>
+                <h3 className="text-sm font-semibold text-gray-900">Inteligência do Instagram</h3>
+                <p className="text-xs text-gray-500">{client.instagram_handle} — análise de estilo, tom e conteúdo</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              {igMessage && (
+                <span className={`text-xs ${igMessage.includes('Erro') ? 'text-red-600' : 'text-green-600'}`}>
+                  {igMessage}
+                </span>
+              )}
+              {(client as any).assets?.instagram_analyzed_at && (
+                <span className="text-[10px] text-gray-400">
+                  Analisado em {new Date((client as any).assets.instagram_analyzed_at).toLocaleDateString('pt-BR')}
+                </span>
+              )}
+              <button
+                onClick={async () => {
+                  setAnalyzingIG(true);
+                  setIgMessage(null);
+                  try {
+                    const res = await fetch(`/api/clients/${id}/analyze-instagram`, { method: 'POST' });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error);
+                    setIgMessage(data.message);
+                  } catch (err: any) {
+                    setIgMessage(`Erro: ${err.message}`);
+                  } finally {
+                    setAnalyzingIG(false);
+                  }
+                }}
+                disabled={analyzingIG}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-hp-purple px-3 py-1.5 text-xs font-medium text-white hover:bg-hp-purple-700 disabled:opacity-50 transition-colors"
+              >
+                {analyzingIG ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Search className="h-3.5 w-3.5" />
+                )}
+                {analyzingIG ? 'Analisando...' : (client as any).assets?.instagram_intelligence ? 'Re-analisar' : 'Analisar Instagram'}
+              </button>
+            </div>
+          </div>
+
+          {/* Show intelligence summary if available */}
+          {(client as any).assets?.instagram_intelligence && (
+            <div className="mt-4 pt-4 border-t border-gray-100 space-y-3">
+              {(client as any).assets.instagram_intelligence.profile_summary && (
+                <p className="text-sm text-gray-600">{(client as any).assets.instagram_intelligence.profile_summary}</p>
+              )}
+              <div className="grid grid-cols-2 gap-3">
+                {(client as any).assets.instagram_intelligence.tone_of_voice && (
+                  <div>
+                    <p className="text-[10px] font-semibold text-gray-400 uppercase">Tom de Voz</p>
+                    <p className="text-xs text-gray-700">{(client as any).assets.instagram_intelligence.tone_of_voice}</p>
+                  </div>
+                )}
+                {(client as any).assets.instagram_intelligence.target_audience && (
+                  <div>
+                    <p className="text-[10px] font-semibold text-gray-400 uppercase">Público-Alvo</p>
+                    <p className="text-xs text-gray-700">{(client as any).assets.instagram_intelligence.target_audience}</p>
+                  </div>
+                )}
+              </div>
+              {(client as any).assets.instagram_intelligence.top_formats && (
+                <div>
+                  <p className="text-[10px] font-semibold text-gray-400 uppercase">Formatos Top</p>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {(client as any).assets.instagram_intelligence.top_formats.map((f: string, i: number) => (
+                      <span key={i} className="rounded-full bg-hp-purple-50 px-2 py-0.5 text-[10px] text-hp-purple-700">{f}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Paleta de Cores */}
@@ -292,14 +380,36 @@ export default function ClienteDetailPage() {
                   <p className="text-sm font-medium text-gray-900">{ref.instagram_handle}</p>
                   <p className="text-xs text-gray-500">{ref.category?.replace(/_/g, ' ')}</p>
                 </div>
-                <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                  ref.analysis_status === 'analisado' ? 'bg-green-100 text-green-700' :
-                  ref.analysis_status === 'analisando' ? 'bg-blue-100 text-blue-700' :
-                  'bg-gray-100 text-gray-600'
-                }`}>
-                  {ref.analysis_status === 'analisado' ? 'Analisado' :
-                   ref.analysis_status === 'analisando' ? 'Analisando...' : 'Pendente'}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                    ref.analysis_status === 'analisado' ? 'bg-green-100 text-green-700' :
+                    ref.analysis_status === 'analisando' ? 'bg-blue-100 text-blue-700' :
+                    ref.analysis_status === 'erro' ? 'bg-red-100 text-red-700' :
+                    'bg-gray-100 text-gray-600'
+                  }`}>
+                    {ref.analysis_status === 'analisado' ? 'Analisado' :
+                     ref.analysis_status === 'analisando' ? 'Analisando...' :
+                     ref.analysis_status === 'erro' ? 'Erro' : 'Pendente'}
+                  </span>
+                  {ref.analysis_status !== 'analisando' && (
+                    <button
+                      onClick={async () => {
+                        setAnalyzingRef(ref.id);
+                        try {
+                          await fetch(`/api/references/${ref.id}/analyze`, { method: 'POST' });
+                          // Refetch client to update status
+                          const res = await fetch(`/api/clients/${id}`);
+                          if (res.ok) setClient(await res.json());
+                        } catch {}
+                        setAnalyzingRef(null);
+                      }}
+                      disabled={analyzingRef === ref.id}
+                      className="text-xs font-medium text-hp-purple hover:text-hp-purple-700 disabled:opacity-50"
+                    >
+                      {analyzingRef === ref.id ? 'Iniciando...' : ref.analysis_status === 'analisado' ? 'Re-analisar' : 'Analisar'}
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
           </div>
