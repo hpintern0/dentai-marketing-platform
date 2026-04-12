@@ -26,6 +26,7 @@ import {
   CheckCircle,
   Video,
   FileText,
+  Users,
 } from 'lucide-react';
 
 interface ReferenceProfile {
@@ -89,6 +90,11 @@ export default function ReferenciasPage() {
   const [formCategory, setFormCategory] = useState('');
   const [formClientId, setFormClientId] = useState('');
   const [formLoading, setFormLoading] = useState(false);
+
+  // Linked clients state per reference
+  const [linkedClients, setLinkedClients] = useState<Record<string, { id: string; client_id: string; clients: { id: string; name: string } }[]>>({});
+  const [linkedClientsLoading, setLinkedClientsLoading] = useState<Record<string, boolean>>({});
+  const [addClientDropdown, setAddClientDropdown] = useState<string | null>(null);
 
   const fetchReferences = useCallback(async () => {
     setLoading(true);
@@ -179,6 +185,69 @@ export default function ReferenciasPage() {
       setFormLoading(false);
     }
   };
+
+  const fetchLinkedClients = useCallback(async (refId: string) => {
+    setLinkedClientsLoading((prev) => ({ ...prev, [refId]: true }));
+    try {
+      const res = await fetch(`/api/references/${refId}/clients`);
+      if (res.ok) {
+        const data = await res.json();
+        setLinkedClients((prev) => ({ ...prev, [refId]: Array.isArray(data) ? data : [] }));
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setLinkedClientsLoading((prev) => ({ ...prev, [refId]: false }));
+    }
+  }, []);
+
+  const handleLinkClient = async (refId: string, clientId: string) => {
+    // Optimistic: add immediately
+    const clientObj = clients.find((c) => c.id === clientId);
+    if (clientObj) {
+      setLinkedClients((prev) => ({
+        ...prev,
+        [refId]: [...(prev[refId] || []), { id: 'temp-' + clientId, client_id: clientId, clients: clientObj }],
+      }));
+    }
+    setAddClientDropdown(null);
+    try {
+      const res = await fetch(`/api/references/${refId}/clients`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ client_id: clientId }),
+      });
+      if (!res.ok) {
+        // Revert on error
+        fetchLinkedClients(refId);
+      } else {
+        // Refresh to get real id
+        fetchLinkedClients(refId);
+      }
+    } catch {
+      fetchLinkedClients(refId);
+    }
+  };
+
+  const handleUnlinkClient = async (refId: string, clientId: string) => {
+    // Optimistic: remove immediately
+    setLinkedClients((prev) => ({
+      ...prev,
+      [refId]: (prev[refId] || []).filter((lc) => lc.client_id !== clientId && lc.clients?.id !== clientId),
+    }));
+    try {
+      await fetch(`/api/references/${refId}/clients?client_id=${clientId}`, { method: 'DELETE' });
+    } catch {
+      fetchLinkedClients(refId);
+    }
+  };
+
+  // Fetch linked clients when a row is expanded
+  useEffect(() => {
+    if (expandedId && !linkedClients[expandedId] && !linkedClientsLoading[expandedId]) {
+      fetchLinkedClients(expandedId);
+    }
+  }, [expandedId, linkedClients, linkedClientsLoading, fetchLinkedClients]);
 
   if (loading && references.length === 0) {
     return (
@@ -361,6 +430,77 @@ export default function ReferenciasPage() {
                             </div>
                           </td>
                         </div>
+
+                        {/* Linked Clients Section */}
+                        {isExpanded && (
+                          <div className="border-t border-gray-100 bg-gray-50/50 px-6 py-4">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Users className="h-4 w-4 text-hp-purple" />
+                              <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                Clientes Vinculados ({(linkedClients[profile.id] || []).length})
+                              </h4>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              {linkedClientsLoading[profile.id] ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin text-gray-400" />
+                              ) : (
+                                <>
+                                  {(linkedClients[profile.id] || []).map((lc) => (
+                                    <span
+                                      key={lc.client_id || lc.clients?.id}
+                                      className="inline-flex items-center gap-1 rounded-full bg-hp-purple-100 px-3 py-1 text-xs font-medium text-hp-purple-700"
+                                    >
+                                      {lc.clients?.name || 'Cliente'}
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleUnlinkClient(profile.id, lc.clients?.id || lc.client_id);
+                                        }}
+                                        className="ml-0.5 rounded-full hover:bg-hp-purple-200 p-0.5 transition-colors"
+                                      >
+                                        <X className="h-3 w-3" />
+                                      </button>
+                                    </span>
+                                  ))}
+                                  <div className="relative">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setAddClientDropdown(addClientDropdown === profile.id ? null : profile.id);
+                                      }}
+                                      className="inline-flex items-center gap-1 rounded-full border border-dashed border-gray-300 px-3 py-1 text-xs text-gray-500 hover:border-hp-purple hover:text-hp-purple transition-colors"
+                                    >
+                                      <Plus className="h-3 w-3" />
+                                      Adicionar Cliente
+                                      <ChevronDown className="h-3 w-3" />
+                                    </button>
+                                    {addClientDropdown === profile.id && (
+                                      <div className="absolute left-0 top-full z-20 mt-1 w-56 rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
+                                        {clients
+                                          .filter((c) => !(linkedClients[profile.id] || []).some((lc) => lc.clients?.id === c.id || lc.client_id === c.id))
+                                          .map((c) => (
+                                            <button
+                                              key={c.id}
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleLinkClient(profile.id, c.id);
+                                              }}
+                                              className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-hp-purple-50 hover:text-hp-purple-700 transition-colors"
+                                            >
+                                              {c.name}
+                                            </button>
+                                          ))}
+                                        {clients.filter((c) => !(linkedClients[profile.id] || []).some((lc) => lc.clients?.id === c.id || lc.client_id === c.id)).length === 0 && (
+                                          <p className="px-4 py-2 text-xs text-gray-400">Todos os clientes já vinculados</p>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        )}
 
                         {/* Expanded Insights Panel */}
                         {isExpanded && profile.insights && (

@@ -47,7 +47,21 @@ export async function GET(request: NextRequest, context: RouteContext) {
       .eq('client_id', id)
       .order('created_at', { ascending: false });
 
-    return NextResponse.json({ ...client, campaigns: campaigns ?? [], reference_profiles: reference_profiles ?? [] });
+    // Also fetch references linked via junction table
+    const { data: linked_references } = await supabase
+      .from('reference_client_links')
+      .select('reference_id, reference_profiles(id, instagram_handle, category, analysis_status, last_analyzed_at, insights)')
+      .eq('client_id', id);
+
+    // Merge both sources (old client_id field + junction table)
+    const allRefs = [
+      ...(reference_profiles || []),
+      ...(linked_references || []).map((lr: any) => lr.reference_profiles).filter(Boolean),
+    ];
+    // Deduplicate by id
+    const uniqueRefs = allRefs.filter((r: any, i: number, arr: any[]) => arr.findIndex((x: any) => x.id === r.id) === i);
+
+    return NextResponse.json({ ...client, campaigns: campaigns ?? [], reference_profiles: uniqueRefs });
   } catch (err) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
