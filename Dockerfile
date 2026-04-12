@@ -1,30 +1,30 @@
 FROM node:20-slim
 
-# Install system dependencies (Chromium, ffmpeg, Python, pip)
+# Install system dependencies (ffmpeg, Python, pip, Chromium deps)
 RUN apt-get update && apt-get install -y \
   libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 \
   libxkbcommon0 libxcomposite1 libxdamage1 libxrandr2 libgbm1 \
   libpango-1.0-0 libcairo2 libasound2 libxshmfence1 \
-  fonts-noto-color-emoji fonts-liberation chromium ffmpeg \
+  fonts-noto-color-emoji fonts-liberation ffmpeg \
   python3 python3-pip python3-venv \
   && rm -rf /var/lib/apt/lists/*
 
-# Install Python packages (yt-dlp, whisper, anthropic)
+# Install Python packages
 RUN pip3 install --break-system-packages yt-dlp anthropic openai-whisper 2>/dev/null || \
     pip3 install yt-dlp anthropic openai-whisper
-
-ENV PLAYWRIGHT_BROWSERS_PATH=/usr/bin
-ENV CHROMIUM_PATH=/usr/bin/chromium
 
 WORKDIR /app
 
 COPY package.json package-lock.json* ./
 RUN npm ci --production=false
 
+# Install Playwright Chromium (reliable, correct version)
+RUN npx playwright install chromium --with-deps
+
 COPY . .
 
 # Cache bust
-ARG CACHEBUST=3
+ARG CACHEBUST=4
 
 # Supabase values baked at build time
 ENV NEXT_PUBLIC_SUPABASE_URL=https://zmtjlpcgfaczbrqwhejk.supabase.co

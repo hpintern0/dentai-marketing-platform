@@ -93,7 +93,7 @@ Nos elementos do tipo "image", use "src" com uma URL real acima ao invés de pla
     const { chromium } = eval("require")('playwright');
     const browser = await chromium.launch({
       headless: true,
-      executablePath: process.env.CHROMIUM_PATH || undefined,
+      
     });
     const page = await browser.newPage();
     await page.setViewportSize({ width: layout.width || 1080, height: layout.height || 1080 });

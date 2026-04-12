@@ -28,7 +28,7 @@ async function syncDriveFolder(driveUrl, clientId) {
   const browser = await chromium.launch({
     headless: true,
     args: ['--no-sandbox'],
-    executablePath: process.env.CHROMIUM_PATH || undefined,
+    
   });
 
   try {

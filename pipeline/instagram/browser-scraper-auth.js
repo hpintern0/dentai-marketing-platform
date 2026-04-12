@@ -160,7 +160,7 @@ async function scrapeProfileAuth(targetUsername, outputDir, maxPosts = 12) {
 
   const browser = await chromium.launch({
     headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu', '--disable-dev-shm-usage'],
   });
 
   const context = await browser.newContext({

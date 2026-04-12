@@ -34,7 +34,7 @@ async function renderVideoFromScenes(scenesPath, outputPath, options = {}) {
   const browser = await chromium.launch({
     headless: true,
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
-    executablePath: process.env.CHROMIUM_PATH || undefined,
+    
   });
 
   try {
