@@ -29,6 +29,7 @@ interface BriefParserOutput {
   inferred_fields: string[];
   ambiguities: string[];
   confirmation_required: boolean;
+  assistant_message?: string;
 }
 
 export function useChat(clientId: string | null) {
@@ -69,7 +70,7 @@ export function useChat(clientId: string | null) {
       const data = await response.json();
 
       if (data.type === 'brief_confirmation') {
-        setCurrentBrief(data.brief);
+        setCurrentBrief({ ...data.brief, assistant_message: data.message });
         const assistantMessage = createMessage('assistant', data.message, 'brief_confirmation', { brief: data.brief });
         setMessages(prev => [...prev, assistantMessage]);
       } else if (data.type === 'clarification') {
@@ -98,7 +99,7 @@ export function useChat(clientId: string | null) {
         body: JSON.stringify({
           client_id: clientId,
           name: `${currentBrief.parsed.procedure_focus}_${new Date().toISOString().split('T')[0]}`,
-          raw_brief: messages.filter(m => m.role === 'user').map(m => m.content).join('\n'),
+          raw_brief: currentBrief.assistant_message || currentBrief.raw_brief,
           parsed_brief: currentBrief.parsed,
           status: 'generating',
           job_payload: {
