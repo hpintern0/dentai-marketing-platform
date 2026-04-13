@@ -98,7 +98,7 @@ export function useChat(clientId: string | null) {
         body: JSON.stringify({
           client_id: clientId,
           name: `${currentBrief.parsed.procedure_focus}_${new Date().toISOString().split('T')[0]}`,
-          raw_brief: currentBrief.raw_brief,
+          raw_brief: messages.filter(m => m.role === 'user').map(m => m.content).join('\n'),
           parsed_brief: currentBrief.parsed,
           status: 'generating',
           job_payload: {
