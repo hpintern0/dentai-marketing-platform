@@ -88,28 +88,51 @@ Nos elementos do tipo "image", use "src" com uma URL real acima ao invés de pla
   const css = generateAdCSS(layout);
   fs.writeFileSync(path.join(outputDir, 'styles.css'), css);
 
-  // Step 4: Render with Playwright (if available)
-  try {
-    const { chromium } = eval("require")('playwright');
-    const browser = await chromium.launch({
-      headless: true,
-      
-    });
-    const page = await browser.newPage();
-    await page.setViewportSize({ width: layout.width || 1080, height: layout.height || 1080 });
+  // Step 4: Generate image with GPT Image 2 (primary) or Playwright (fallback)
+  if (process.env.OPENAI_API_KEY) {
+    try {
+      const { generateImage } = require('../../src/lib/image-gen');
+      const headline = (layout.elements || []).find(e => e.type === 'headline')?.text || procedure_focus;
+      const subtext = (layout.elements || []).find(e => e.type === 'subtext')?.text || '';
+      const ctaText = (layout.elements || []).find(e => e.type === 'cta')?.text || 'Agende sua avaliação';
 
-    const fullHtml = `<!DOCTYPE html><html><head><style>${css}</style></head><body>${html}</body></html>`;
-    await page.setContent(fullHtml, { waitUntil: 'networkidle' });
+      const imagePrompt = `Crie um post profissional para Instagram (1080x1080) de uma clínica odontológica.
 
-    await page.screenshot({
-      path: path.join(outputDir, 'instagram_ad.png'),
-      type: 'png',
-    });
+Procedimento: ${procedure_focus}
+Headline: "${headline}"
+${subtext ? `Subtexto: "${subtext}"` : ''}
+CTA: "${ctaText}"
+${client_name ? `Clínica: ${client_name}` : ''}
+${raw_brief ? `Brief: ${raw_brief}` : ''}
 
-    await browser.close();
-    console.log(`[Ad Creative] PNG rendered via Playwright`);
-  } catch (err) {
-    console.warn(`[Ad Creative] Playwright not available: ${err.message}. HTML saved for manual rendering.`);
+Estilo: design moderno, clean, premium para marketing odontológico.
+Cores: fundo suave, texto escuro legível, botão de CTA destacado.
+NÃO use fotos de pessoas reais. Use design gráfico, tipografia e elementos visuais.
+O texto deve ser legível e centralizado. Layout profissional de agência.`;
+
+      await generateImage(imagePrompt, {
+        size: '1024x1024',
+        quality: 'medium',
+        outputPath: path.join(outputDir, 'instagram_ad.png'),
+      });
+      console.log(`[Ad Creative] Image generated via GPT Image`);
+    } catch (err) {
+      console.warn(`[Ad Creative] GPT Image failed: ${err.message}. Trying Playwright...`);
+      // Fallback to Playwright
+      try {
+        const { chromium } = eval("require")('playwright');
+        const browser = await chromium.launch({ headless: true });
+        const page = await browser.newPage();
+        await page.setViewportSize({ width: layout.width || 1080, height: layout.height || 1080 });
+        await page.setContent(`<!DOCTYPE html><html><head><style>${css}</style></head><body>${html}</body></html>`, { waitUntil: 'domcontentloaded' });
+        await page.waitForTimeout(1000);
+        await page.screenshot({ path: path.join(outputDir, 'instagram_ad.png'), type: 'png' });
+        await browser.close();
+        console.log(`[Ad Creative] PNG rendered via Playwright (fallback)`);
+      } catch (e2) {
+        console.warn(`[Ad Creative] Both methods failed. HTML saved.`);
+      }
+    }
   }
 
   console.log(`[Ad Creative] Complete. Outputs saved to ${outputDir}`);

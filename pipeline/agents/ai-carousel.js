@@ -95,27 +95,62 @@ REGRAS:
 
   // Generate and render each slide
   const slides = carouselStructure.slides || [];
-  for (let i = 0; i < slides.length; i++) {
-    const slide = slides[i];
-    const slideHtml = generateSlideHTML(slide, carouselStructure.total_slides || slides.length);
-    const slideCss = generateSlideCss();
 
-    fs.writeFileSync(path.join(outputDir, `slide_${String(i + 1).padStart(2, '0')}.html`),
-      `<!DOCTYPE html><html><head><style>${slideCss}</style></head><body>${slideHtml}</body></html>`
-    );
-
-    // Playwright render
+  if (process.env.OPENAI_API_KEY) {
+    // Use GPT Image to generate each slide
     try {
-      const { chromium } = eval("require")('playwright');
-      const browser = await chromium.launch({ headless: true, executablePath: process.env.CHROMIUM_PATH || undefined });
-      const page = await browser.newPage();
-      await page.setViewportSize({ width: 1080, height: 1080 });
-      const fullHtml = `<!DOCTYPE html><html><head><style>${slideCss}</style></head><body>${slideHtml}</body></html>`;
-      await page.setContent(fullHtml, { waitUntil: 'networkidle' });
-      await page.screenshot({ path: path.join(outputDir, `slide_${String(i + 1).padStart(2, '0')}.png`), type: 'png' });
-      await browser.close();
+      const { generateImage } = require('../../src/lib/image-gen');
+
+      for (let i = 0; i < slides.length; i++) {
+        const slide = slides[i];
+        const slideNum = String(i + 1).padStart(2, '0');
+
+        let slidePrompt = `Crie o slide ${i + 1} de ${slides.length} de um carrossel para Instagram (1080x1080) de uma clínica odontológica.
+
+Procedimento: ${procedure_focus}
+${client_name ? `Clínica: ${client_name}` : ''}
+${raw_brief ? `Brief: ${raw_brief}` : ''}
+
+`;
+        if (slide.is_cover || slide.iscover) {
+          slidePrompt += `Este é o SLIDE DE CAPA. Headline grande e impactante: "${slide.headline}"
+Design chamativo que faz parar o scroll. Fundo escuro ou vibrante. Texto "Deslize para saber mais" discreto no rodapé.`;
+        } else if (slide.is_cta || slide.isCta) {
+          slidePrompt += `Este é o SLIDE FINAL (CTA). Headline: "${slide.headline}"
+Botão de CTA destacado: "${slide.body || 'Agende sua avaliação'}"
+${client_name ? `Nome: ${client_name}` : ''}. Design que convida à ação.`;
+        } else {
+          slidePrompt += `Slide de conteúdo. Título: "${slide.headline}"
+Conteúdo: "${slide.body || ''}"
+Indicador de slide: ${slide.slide_number || i + 1}/${slides.length}
+Design educativo, clean, com boa hierarquia de informação.`;
+        }
+
+        slidePrompt += `\n\nEstilo: profissional, moderno, para marketing odontológico. Texto legível. NÃO use fotos reais.`;
+
+        try {
+          await generateImage(slidePrompt, {
+            size: '1024x1024',
+            quality: 'medium',
+            outputPath: path.join(outputDir, `slide_${slideNum}.png`),
+          });
+          console.log(`[Carousel] Slide ${i + 1}/${slides.length} generated via GPT Image`);
+        } catch (slideErr) {
+          console.warn(`[Carousel] Slide ${i + 1} GPT Image failed: ${slideErr.message}`);
+        }
+      }
     } catch (err) {
-      // Playwright not available, HTML saved for manual rendering
+      console.warn(`[Carousel] GPT Image not available: ${err.message}`);
+    }
+  } else {
+    // Fallback: save HTML slides
+    for (let i = 0; i < slides.length; i++) {
+      const slide = slides[i];
+      const slideHtml = generateSlideHTML(slide, carouselStructure.total_slides || slides.length);
+      const slideCss = generateSlideCss();
+      fs.writeFileSync(path.join(outputDir, `slide_${String(i + 1).padStart(2, '0')}.html`),
+        `<!DOCTYPE html><html><head><style>${slideCss}</style></head><body>${slideHtml}</body></html>`
+      );
     }
   }
 
